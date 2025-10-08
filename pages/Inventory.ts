@@ -41,7 +41,7 @@ export class InventoryPage {
     await expect(breadcrumb).toHaveText("Products");
   }
 
-  async createNewProduct(productName: string) {
+  async createNewProduct(productName: string, price: number) {
     // Clicking to new button
     await this.page.getByRole("button", { name: "New" }).click();
 
@@ -55,7 +55,7 @@ export class InventoryPage {
       .locator("select#detailed_type")
       .selectOption({ label: "Storable Product" });
     // Add the sales price of the product
-    await this.page.locator("#list_price").fill("10.000");
+    await this.page.locator("#list_price").fill(price.toString());
 
     await this.page.getByRole("tab", { name: "Sales" }).click();
 

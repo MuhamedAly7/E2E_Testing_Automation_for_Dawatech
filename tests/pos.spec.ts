@@ -42,7 +42,7 @@ test("POS-0001 (POS Preferred to be closed)", async () => {
   // Go to the inventory module and create product (to guarantee that our product is exist)
   await inventoryPage.navigateToInventory();
   await inventoryPage.navigateToProductsInventory();
-  await inventoryPage.createNewProduct("auto product");
+  await inventoryPage.createNewProduct("auto product", 100.0);
 
   // Go to POS module
   await posPage.navigateToPOS();
@@ -102,7 +102,7 @@ test("POS-002", async () => {
   // Go to the inventory module and create product (to guarantee that our product is exist)
   await inventoryPage.navigateToInventory();
   await inventoryPage.navigateToProductsInventory();
-  await inventoryPage.createNewProduct("auto product");
+  await inventoryPage.createNewProduct("auto product", 100.0);
 
   await posPage.navigateToPOS();
   await posPage.handleSessionOpening();
@@ -135,6 +135,7 @@ test("POS-002", async () => {
   // Remove remaining product and close session
   await posPage.decrementQuantity();
   await posPage.confirmAction();
+
   await posPage.closeSession();
   await posPage.waitForPOSPage();
 
@@ -146,7 +147,7 @@ test("POS-003", async () => {
   // Go to the inventory module and create product (to guarantee that our product is exist)
   await inventoryPage.navigateToInventory();
   await inventoryPage.navigateToProductsInventory();
-  await inventoryPage.createNewProduct("auto product");
+  await inventoryPage.createNewProduct("auto product", 100.0);
 
   await posPage.navigateToPOS();
   await posPage.handleSessionOpening();
@@ -157,7 +158,7 @@ test("POS-003", async () => {
   await posPage.verifyProductInOrder("auto product");
 
   // click to instruction button and handle all field
-  await posPage.createInstructionNote("test note instructions");
+  await posPage.createInstructionNoteAndPay("test note instructions");
 
   // Archive the product
   await inventoryPage.navigateToInventory();
@@ -166,7 +167,64 @@ test("POS-003", async () => {
 });
 
 test("POS-004", async () => {
+  // Go to the inventory module and create product (to guarantee that our product is exist)
+  // await inventoryPage.navigateToInventory();
+  // await inventoryPage.navigateToProductsInventory();
+  // await inventoryPage.createNewProduct("auto product", 100.0);
+
+  // Start creating and configuraing the loyalty card
   await posPage.navigateToPOS();
   await posPage.navigateToDiscountAndLoyalty();
-  await posPage.createLoyalityCard("Auto Loyalty Card");
+  await posPage.ArchiveAllPrograms();
+  await posPage.createLoyalityCard(process.env.LOYALTY_CARD_NAME as string);
+  await posPage.navigateToPOS();
+  await posPage.handleSessionOpening();
+  await posPage.selectCustomer(
+    process.env.USERNAME_CUSTOMERNAME_CASHIERNAME as string
+  );
+
+  // Add product and handle lot popup
+  await posPage.addProduct("auto product");
+  await posPage.handleLotPopup();
+  await posPage.verifyProductInOrder("auto product");
+
+  await posPage.verifyEarnedPoints(
+    (process.env.USERNAME_CUSTOMERNAME_CASHIERNAME as string) + "Points"
+  );
+
+  // Make sure the reward still not fired
+  await posPage.assretRewardNotFired();
+
+  // Increase the quantity of product in order line
+  await posPage.setQuantityByKeyboard(2);
+
+  // Verify points after increasing
+  await posPage.verifyEarnedPoints(
+    (process.env.USERNAME_CUSTOMERNAME_CASHIERNAME as string) + "Points"
+  );
+
+  // Make sure the reward fired after reach to configure points
+  await posPage.assertRewardFired();
+
+  // Redeem Point in orders after increasing the quantity to see the reward
+  await posPage.clickToRewardButton();
+  await posPage.assertDiscountHappening();
+
+  // Process payment
+  await posPage.initiatePayment();
+  await expect(posPage.getPaymentHeader()).toHaveText("Payment");
+  await posPage.selectPaymentMethod("Cash");
+  await posPage.validatePayment();
+  await posPage.startNewOrder();
+  await posPage.closeSession();
+  await posPage.waitForPOSPage();
+
+  // Check backend for earned points
+  await posPage.navigateToPOS();
+  await posPage.navigateToDiscountAndLoyalty();
+
+  // Archive the product
+  // await inventoryPage.navigateToInventory();
+  // await inventoryPage.navigateToProductsInventory();
+  // await inventoryPage.archiveProduct("auto product");
 });
