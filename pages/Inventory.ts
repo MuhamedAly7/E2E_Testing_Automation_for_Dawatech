@@ -41,7 +41,11 @@ export class InventoryPage {
     await expect(breadcrumb).toHaveText("Products");
   }
 
-  async createNewProduct(productName: string, price: number) {
+  async createNewProduct(
+    productName: string,
+    price: number,
+    onHandQuantity: number
+  ) {
     // Clicking to new button
     await this.page.getByRole("button", { name: "New" }).click();
 
@@ -141,8 +145,8 @@ export class InventoryPage {
       .innerText();
 
     // Optionally, you can assert programmatically
-    expect(priceText).toContain("10.000");
-    expect(onHandText).toContain("20.000");
+    expect(priceText).toContain(price.toString());
+    expect(onHandText).toContain(onHandQuantity.toString());
   }
 
   async archiveProduct(productName: string) {

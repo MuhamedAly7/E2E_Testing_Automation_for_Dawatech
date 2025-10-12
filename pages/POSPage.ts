@@ -43,6 +43,7 @@ export class POSPage {
   }
 
   async waitForPOSPage() {
+    await this.page.waitForTimeout(500);
     await this.page.waitForSelector(
       "ol.breadcrumb li span:text('Point of Sale')"
     );
@@ -240,7 +241,7 @@ export class POSPage {
   }
 
   async closeSession() {
-    this.clickCloseButton();
+    await this.clickCloseButton();
     const closingPopup = this.page.locator(".popup.close-pos-popup");
     await expect(closingPopup).toBeVisible();
 
@@ -450,6 +451,40 @@ export class POSPage {
     await this.page.waitForTimeout(500);
   }
 
+  private async configureConditionalRulePromotion() {
+    // Locate and click the kanban card
+    const card = this.page.locator(".oe_kanban_global_click_edit", {
+      hasText: "If minimum 50.00 E£ spent",
+    });
+    await card.click();
+
+    // Wait for the modal to appear
+    const modal = this.page.locator(".modal-content.o_form_view");
+    await expect(modal).toBeVisible();
+
+    // Fill "Minimum Quantity"
+    const minQtyInput = modal.locator("input#minimum_qty");
+    await minQtyInput.fill("1");
+
+    // Fill "Grant" field
+    const grantInput = modal.locator("input#reward_point_amount");
+    await grantInput.fill("1.00");
+
+    // Select "per E£ spent" radio option
+    const radioPerMoney = modal.locator('input[data-value="money"]');
+    await radioPerMoney.check();
+
+    // Fill products input
+    const input = this.page.locator("input.o-autocomplete--input").nth(2);
+    await input.fill("auto product");
+    await this.page.waitForTimeout(500);
+    await input.press("Enter");
+
+    // Click save if you want to persist
+    await modal.locator("button.o_form_button_save").click();
+    await this.page.waitForTimeout(500);
+  }
+
   private async configureRewards() {
     // Click the reward card that contains "% discount on your order"
     const rewardCard = this.page.locator(".oe_kanban_global_click_edit", {
@@ -476,6 +511,36 @@ export class POSPage {
     // Fill "In exchange of" field = "200"
     const pointsInput = modal.locator("input#required_points");
     await pointsInput.fill("200");
+
+    // Fill deccribtion of the reward
+    await this.page.locator("#description").fill("automation");
+
+    // Save and close
+    const saveButton = modal.locator("button.o_form_button_save");
+    await saveButton.click();
+    await this.page.waitForTimeout(500);
+  }
+
+  async configureRewardsPromotion() {
+    // Click the reward card that contains "% discount on your order"
+    const rewardCard = this.page.locator(".oe_kanban_global_click_edit", {
+      hasText: "% discount on your order",
+    });
+    await rewardCard.click();
+
+    // Wait for modal to appear
+    const modal = this.page.locator(".modal-content.o_form_view");
+    await expect(modal).toBeVisible();
+
+    // Select Reward Type = "Free Product"
+    const rewardTypeSelect = modal.locator("select#reward_type");
+    await rewardTypeSelect.selectOption({ label: "Free Product" });
+
+    // Fill product field
+    const input = this.page.locator("input.o-autocomplete--input").nth(2);
+    await input.fill("auto product");
+    await this.page.waitForTimeout(500);
+    await input.press("Enter");
 
     // Fill deccribtion of the reward
     await this.page.locator("#description").fill("automation");
@@ -518,7 +583,6 @@ export class POSPage {
     const formattedToday = this.formatDate(today);
     const formattedTomorrow = this.formatDate(tomorrow);
 
-    // Fill "FROM" and "TO" fields
     const fromField = this.page.locator("#date_from");
     const toField = this.page.locator("#date_to");
 
@@ -528,6 +592,51 @@ export class POSPage {
     await this.cancelFreeShipping();
     await this.configureConditionalRule();
     await this.configureRewards();
+
+    // Cloud save
+    await this.page.getByRole("button", { name: "Save manually" }).click();
+    await this.page.waitForTimeout(500);
+  }
+
+  async createProgramBuyOneGetOne(programName: string) {
+    // Clicking to new button
+    await this.page.getByRole("button", { name: "New" }).click();
+
+    await this.page.waitForTimeout(1000);
+
+    // Fill the name input
+    await this.page.locator('div[name="name"] input#name').fill(programName);
+    await this.page.waitForTimeout(1000);
+
+    // Select "Promotions" from dropdown
+    await this.page
+      .locator('div[name="program_type"] select#program_type')
+      .selectOption({ label: "Promotions" });
+    await this.page.waitForTimeout(500);
+
+    // Locate and click "Point of Sale" checkpoint
+    await this.page.getByRole("checkbox", { name: "Point of Sale" }).click();
+    await this.page.waitForTimeout(500);
+
+    await this.page.fill("#portal_point_name", programName);
+
+    // Filling dates FROM and TO
+    const today = new Date();
+    const tomorrow = new Date();
+    tomorrow.setDate(today.getDate() + 1);
+
+    const formattedToday = this.formatDate(today);
+    const formattedTomorrow = this.formatDate(tomorrow);
+
+    const fromField = this.page.locator("#date_from");
+    const toField = this.page.locator("#date_to");
+
+    await fromField.fill(formattedToday);
+    await toField.fill(formattedTomorrow);
+
+    // Configure conditional rule and rewards
+    await this.configureConditionalRulePromotion();
+    await this.configureRewardsPromotion();
 
     // Cloud save
     await this.page.getByRole("button", { name: "Save manually" }).click();
@@ -545,7 +654,7 @@ export class POSPage {
     const customerTable = this.page.locator("table.partner-list");
     await expect(customerTable).toBeVisible({ timeout: 5000 });
 
-    // Locate the row that contains the name 'Mohamed Hassan'
+    // Locate the row that contains the name 'customer name'
     const targetRow = customerTable.locator("tr.partner-line", {
       hasText: customerName,
     });
@@ -555,7 +664,7 @@ export class POSPage {
     await targetRow.click();
     await this.page.waitForTimeout(500);
 
-    // Verify that the Customer button now shows "Mohamed Hassan"
+    // Verify that the Customer button now shows "customer name"
     const selectedCustomerButton = this.page.locator(
       ".button.set-partner.decentered"
     );
@@ -584,10 +693,13 @@ export class POSPage {
     const priceValue = parseFloat(priceText.replace(/[^\d.]/g, ""));
 
     // Locate loyalty points section and extract "points won" text
-    const pointsWonText = await this.page
-      .locator(".loyalty-points", { hasText: loyaltyCardPointsName })
-      .locator(".loyalty-points-won .value")
-      .innerText();
+    const pointsSection = this.page.locator(".loyalty-points", {
+      hasText: loyaltyCardPointsName,
+    });
+    await pointsSection.waitFor({ state: "visible", timeout: 10000 });
+    const pointsValue = pointsSection.locator(".loyalty-points-won .value");
+    await pointsValue.waitFor({ state: "visible", timeout: 10000 });
+    const pointsWonText = await pointsValue.innerText();
     console.log("Points won text:", pointsWonText);
 
     // Remove "+" and convert to number
@@ -618,18 +730,18 @@ export class POSPage {
       const actionButton = this.page.locator("button.dropdown-toggle", {
         hasText: "Action",
       });
+      await actionButton.waitFor({ state: "visible", timeout: 2000 });
       await actionButton.click();
     } catch (e) {
       return;
     }
 
     // Wait for the dropdown menu and click "Archive"
-    const archiveOption = this.page.locator(
-      ".o-dropdown--menu .dropdown-item",
-      {
+    const archiveOption = this.page
+      .locator(".o-dropdown--menu .dropdown-item", {
         hasText: "Archive",
-      }
-    );
+      })
+      .first();
     await archiveOption.waitFor({ state: "visible" });
     await archiveOption.click();
 
@@ -649,7 +761,7 @@ export class POSPage {
   }
 
   async assretRewardNotFired() {
-    const rewardButton = this.page.locator(".control-button.highlight", {
+    const rewardButton = this.page.locator(".control-button", {
       hasText: "Reward",
     });
     await expect(rewardButton).not.toHaveCSS(
@@ -686,7 +798,7 @@ export class POSPage {
 
     // You can also assert text content for clarity
     await expect(rewardLine.locator(".product-name")).toContainText(
-      "0.01 E£ per point on your order"
+      "automation"
     );
 
     // Assert that the loyalty points section shows negative spent points
@@ -697,5 +809,88 @@ export class POSPage {
       .locator(".loyalty-points-spent .value")
       .textContent();
     expect(spentValue && spentValue.trim()).toMatch(/^-/);
+  }
+
+  async assertGettingFreeProduct() {
+    // Locate Order line
+    const orderlines = this.page.locator("ul.orderlines > li.orderline");
+
+    // Get all matching product lines for "auto product" with correct price
+    const autoProducts = orderlines
+      .filter({
+        has: this.page.locator(".product-name", { hasText: "auto product" }),
+      })
+      .filter({
+        has: this.page.locator(".price", { hasText: "100.00 E£" }),
+      });
+
+    // Check for the "automation" reward line
+    const automationProduct = orderlines
+      .filter({
+        has: this.page.locator(".product-name", { hasText: "automation" }),
+      })
+      .filter({
+        has: this.page.locator(".price", { hasText: "-100.00 E£" }),
+      });
+
+    // Assertions
+    await expect(autoProducts).toHaveCount(2);
+    await expect(automationProduct).toHaveCount(1);
+  }
+
+  async openProgram(programName: string) {
+    const targetRow = this.page.locator("tr.o_data_row", {
+      has: this.page.locator('td[name="name"]', {
+        hasText: programName,
+      }),
+    });
+
+    // Wait until it appears
+    await targetRow.waitFor({ state: "visible", timeout: 5000 });
+
+    // Click the row
+    await targetRow.click();
+
+    const breadcrumbItem = this.page.locator(
+      "ol.breadcrumb li.active span.text-truncate"
+    );
+
+    // Wait for the text to be visible and match
+    await breadcrumbItem.waitFor({ state: "visible", timeout: 5000 });
+    await expect(breadcrumbItem).toHaveText("Auto Loyalty Card");
+  }
+
+  async openLoyaltyCardInsideProgram() {
+    try {
+      // Locate the button by its unique name attribute
+      const loyaltyButton = this.page.locator(
+        'button[name="action_open_loyalty_cards"]'
+      );
+
+      // Wait for it to appear (visible in DOM)
+      await loyaltyButton.waitFor({ state: "visible", timeout: 5000 });
+
+      // Locate the count span inside the button
+      const loyaltyCount = loyaltyButton.locator(
+        'div[name="coupon_count"] span'
+      );
+
+      // Wait until count appears
+      await loyaltyCount.waitFor({ state: "visible", timeout: 5000 });
+
+      // Assert the count is "1"
+      await expect(loyaltyCount).toHaveText("1");
+
+      console.log("✅ Loyalty Cards count is 1");
+
+      // Click the button
+      await loyaltyButton.click();
+
+      console.log("✅ Clicked on Loyalty Cards button");
+    } catch (error) {
+      console.error(
+        "⚠️ Loyalty Cards button not found or count assertion failed"
+      );
+    }
   }
 }

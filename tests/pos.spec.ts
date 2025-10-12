@@ -42,7 +42,7 @@ test("POS-0001 (POS Preferred to be closed)", async () => {
   // Go to the inventory module and create product (to guarantee that our product is exist)
   await inventoryPage.navigateToInventory();
   await inventoryPage.navigateToProductsInventory();
-  await inventoryPage.createNewProduct("auto product", 100.0);
+  await inventoryPage.createNewProduct("auto product", 100.0, 20);
 
   // Go to POS module
   await posPage.navigateToPOS();
@@ -102,7 +102,7 @@ test("POS-002", async () => {
   // Go to the inventory module and create product (to guarantee that our product is exist)
   await inventoryPage.navigateToInventory();
   await inventoryPage.navigateToProductsInventory();
-  await inventoryPage.createNewProduct("auto product", 100.0);
+  await inventoryPage.createNewProduct("auto product", 100.0, 20);
 
   await posPage.navigateToPOS();
   await posPage.handleSessionOpening();
@@ -147,7 +147,7 @@ test("POS-003", async () => {
   // Go to the inventory module and create product (to guarantee that our product is exist)
   await inventoryPage.navigateToInventory();
   await inventoryPage.navigateToProductsInventory();
-  await inventoryPage.createNewProduct("auto product", 100.0);
+  await inventoryPage.createNewProduct("auto product", 100.0, 20);
 
   await posPage.navigateToPOS();
   await posPage.handleSessionOpening();
@@ -168,9 +168,9 @@ test("POS-003", async () => {
 
 test("POS-004", async () => {
   // Go to the inventory module and create product (to guarantee that our product is exist)
-  // await inventoryPage.navigateToInventory();
-  // await inventoryPage.navigateToProductsInventory();
-  // await inventoryPage.createNewProduct("auto product", 100.0);
+  await inventoryPage.navigateToInventory();
+  await inventoryPage.navigateToProductsInventory();
+  await inventoryPage.createNewProduct("auto product", 100.0, 20);
 
   // Start creating and configuraing the loyalty card
   await posPage.navigateToPOS();
@@ -189,7 +189,7 @@ test("POS-004", async () => {
   await posPage.verifyProductInOrder("auto product");
 
   await posPage.verifyEarnedPoints(
-    (process.env.USERNAME_CUSTOMERNAME_CASHIERNAME as string) + "Points"
+    (process.env.LOYALTY_CARD_NAME as string) + " Points"
   );
 
   // Make sure the reward still not fired
@@ -200,7 +200,7 @@ test("POS-004", async () => {
 
   // Verify points after increasing
   await posPage.verifyEarnedPoints(
-    (process.env.USERNAME_CUSTOMERNAME_CASHIERNAME as string) + "Points"
+    (process.env.LOYALTY_CARD_NAME as string) + " Points"
   );
 
   // Make sure the reward fired after reach to configure points
@@ -222,9 +222,74 @@ test("POS-004", async () => {
   // Check backend for earned points
   await posPage.navigateToPOS();
   await posPage.navigateToDiscountAndLoyalty();
+  await posPage.openProgram(process.env.LOYALTY_CARD_NAME as string);
+  await posPage.openLoyaltyCardInsideProgram();
 
   // Archive the product
-  // await inventoryPage.navigateToInventory();
-  // await inventoryPage.navigateToProductsInventory();
-  // await inventoryPage.archiveProduct("auto product");
+  await inventoryPage.navigateToInventory();
+  await inventoryPage.navigateToProductsInventory();
+  await inventoryPage.archiveProduct("auto product");
+});
+
+test("POS-005 (Buy one get one)", async () => {
+  // Go to the inventory module and create product (to guarantee that our product is exist)
+  await inventoryPage.navigateToInventory();
+  await inventoryPage.navigateToProductsInventory();
+  await inventoryPage.createNewProduct("auto product", 100.0, 20);
+
+  // Start creating and configuraing the buy one get one program
+  await posPage.navigateToPOS();
+  await posPage.navigateToDiscountAndLoyalty();
+  await posPage.ArchiveAllPrograms();
+  await posPage.createProgramBuyOneGetOne(
+    process.env.LOYALTY_CARD_NAME as string
+  );
+
+  // Open POS
+  await posPage.navigateToPOS();
+  await posPage.handleSessionOpening();
+
+  // Add product and handle lot popup
+  await posPage.addProduct("auto product");
+  await posPage.handleLotPopup();
+  await posPage.verifyProductInOrder("auto product");
+
+  // Make sure the reward fired after reach to configure points
+  await posPage.assertRewardFired();
+
+  // Redeem Point in orders after increasing the quantity to see the reward
+  await posPage.clickToRewardButton();
+  await posPage.assertGettingFreeProduct();
+
+  // Process payment
+  await posPage.initiatePayment();
+  await expect(posPage.getPaymentHeader()).toHaveText("Payment");
+  await posPage.selectPaymentMethod("Cash");
+  await posPage.validatePayment();
+  await posPage.startNewOrder();
+  await posPage.closeSession();
+  await posPage.waitForPOSPage();
+
+  // Check backend for using buy one get one program
+  await posPage.navigateToPOS();
+  await posPage.navigateToDiscountAndLoyalty();
+  await posPage.openProgram(process.env.LOYALTY_CARD_NAME as string);
+  await posPage.openLoyaltyCardInsideProgram();
+
+  // Archive the product
+  await inventoryPage.navigateToInventory();
+  await inventoryPage.navigateToProductsInventory();
+  await inventoryPage.archiveProduct("auto product");
+});
+
+test("POS-005 (Price cut)", async () => {
+  // Go to the inventory module and create product (to guarantee that our product is exist)
+  await inventoryPage.navigateToInventory();
+  await inventoryPage.navigateToProductsInventory();
+  await inventoryPage.createNewProduct("auto product", 100.0, 20);
+
+  // Start creating and configuraing the buy one get one program
+  await posPage.navigateToPOS();
+  await posPage.navigateToDiscountAndLoyalty();
+  // await posPage.ArchiveAllPrograms();
 });
