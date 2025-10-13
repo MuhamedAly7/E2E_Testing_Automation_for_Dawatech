@@ -49,7 +49,7 @@ export class InventoryPage {
     // Clicking to new button
     await this.page.getByRole("button", { name: "New" }).click();
 
-    // locate product name field and fill it with "auto product"
+    // locate product name field and fill it with productName
     const nameInput = this.page.locator("input#name");
     await nameInput.waitFor({ state: "visible" });
     await nameInput.fill(productName);
@@ -158,7 +158,7 @@ export class InventoryPage {
     // Clicking to new button
     await this.page.getByRole("button", { name: "New" }).click();
 
-    // locate product name field and fill it with "auto product"
+    // locate product name field and fill it with productName
     const nameInput = this.page.locator("input#name");
     await nameInput.waitFor({ state: "visible" });
     await nameInput.fill(productName);

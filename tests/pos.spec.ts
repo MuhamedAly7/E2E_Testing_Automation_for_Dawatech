@@ -41,19 +41,23 @@ test.afterAll(async () => {
 
 test("POS-0001 (POS Preferred to be closed)", async () => {
   // Go to the inventory module and create product (to guarantee that our product is exist)
-  await inventoryPage.archiveProduct("auto product");
-  await inventoryPage.createNewProduct("auto product", 100.0, 20);
+  await inventoryPage.archiveProduct(process.env.PRODUCT_NAME as string);
+  await inventoryPage.createNewProduct(
+    process.env.PRODUCT_NAME as string,
+    100.0,
+    20
+  );
 
   // Go to POS module
   await posPage.navigateToPOS();
   await posPage.handleSessionOpening();
 
   // Add product and handle lot popup
-  await posPage.addProduct("auto product");
+  await posPage.addProduct(process.env.PRODUCT_NAME as string);
   await posPage.handleLotPopup();
 
   // Verify product and update quantity
-  await posPage.verifyProductInOrder("auto product");
+  await posPage.verifyProductInOrder(process.env.PRODUCT_NAME as string);
   await posPage.setQuantity("2");
   await expect(posPage.getQuantity()).toHaveText("2.000");
 
@@ -74,7 +78,7 @@ test("POS-0001 (POS Preferred to be closed)", async () => {
   await posPage.initiateRefundPayment();
 
   // Attempt to add product during refund (should fail)
-  await posPage.addProduct("auto product");
+  await posPage.addProduct(process.env.PRODUCT_NAME as string);
   await posPage.handleLotPopup();
   await posPage.verifyRefundError();
   await posPage.dismissErrorPopup();
@@ -95,27 +99,31 @@ test("POS-0001 (POS Preferred to be closed)", async () => {
   expect(receiptNumber).toBe(receiptNumberPOS);
 
   // archive the product
-  await inventoryPage.archiveProduct("auto product");
+  await inventoryPage.archiveProduct(process.env.PRODUCT_NAME as string);
 });
 
 test("POS-002", async () => {
   // Go to the inventory module and create product (to guarantee that our product is exist)
-  await inventoryPage.archiveProduct("auto product");
-  await inventoryPage.createNewProduct("auto product", 100.0, 20);
+  await inventoryPage.archiveProduct(process.env.PRODUCT_NAME as string);
+  await inventoryPage.createNewProduct(
+    process.env.PRODUCT_NAME as string,
+    100.0,
+    20
+  );
 
   await posPage.navigateToPOS();
   await posPage.handleSessionOpening();
 
   // Add product and handle lot popup
-  await posPage.addProduct("auto product");
+  await posPage.addProduct(process.env.PRODUCT_NAME as string);
   await posPage.handleLotPopup();
-  await posPage.verifyProductInOrder("auto product");
+  await posPage.verifyProductInOrder(process.env.PRODUCT_NAME as string);
 
   // Increment quantity
   await posPage.incrementQuantity();
-  await posPage.addProduct("auto product");
+  await posPage.addProduct(process.env.PRODUCT_NAME as string);
   await posPage.handleLotPopup();
-  await posPage.verifyProductInOrder("auto product");
+  await posPage.verifyProductInOrder(process.env.PRODUCT_NAME as string);
 
   // Switch to ticket view and verify order rows
   await posPage.switchToTicketView();
@@ -139,21 +147,25 @@ test("POS-002", async () => {
   await posPage.waitForPOSPage();
 
   // Verify Orders page navigation
-  await inventoryPage.archiveProduct("auto product");
+  await inventoryPage.archiveProduct(process.env.PRODUCT_NAME as string);
 });
 
 test("POS-003", async () => {
   // Go to the inventory module and create product (to guarantee that our product is exist)
-  await inventoryPage.archiveProduct("auto product");
-  await inventoryPage.createNewProduct("auto product", 100.0, 20);
+  await inventoryPage.archiveProduct(process.env.PRODUCT_NAME as string);
+  await inventoryPage.createNewProduct(
+    process.env.PRODUCT_NAME as string,
+    100.0,
+    20
+  );
 
   await posPage.navigateToPOS();
   await posPage.handleSessionOpening();
 
   // Add product and handle lot popup
-  await posPage.addProduct("auto product");
+  await posPage.addProduct(process.env.PRODUCT_NAME as string);
   await posPage.handleLotPopup();
-  await posPage.verifyProductInOrder("auto product");
+  await posPage.verifyProductInOrder(process.env.PRODUCT_NAME as string);
 
   // click to instruction button and handle all field
   await posPage.createInstructionNoteAndPay("test note instructions");
@@ -161,13 +173,17 @@ test("POS-003", async () => {
   // Archive the product
   await inventoryPage.navigateToInventory();
   await inventoryPage.navigateToProductsInventory();
-  await inventoryPage.archiveProduct("auto product");
+  await inventoryPage.archiveProduct(process.env.PRODUCT_NAME as string);
 });
 
 test("POS-004", async () => {
   // Go to the inventory module and create product (to guarantee that our product is exist)
-  await inventoryPage.archiveProduct("auto product");
-  await inventoryPage.createNewProduct("auto product", 100.0, 20);
+  await inventoryPage.archiveProduct(process.env.PRODUCT_NAME as string);
+  await inventoryPage.createNewProduct(
+    process.env.PRODUCT_NAME as string,
+    100.0,
+    20
+  );
 
   // Start creating and configuraing the loyalty card
   await posPage.navigateToPOS();
@@ -181,9 +197,9 @@ test("POS-004", async () => {
   );
 
   // Add product and handle lot popup
-  await posPage.addProduct("auto product");
+  await posPage.addProduct(process.env.PRODUCT_NAME as string);
   await posPage.handleLotPopup();
-  await posPage.verifyProductInOrder("auto product");
+  await posPage.verifyProductInOrder(process.env.PRODUCT_NAME as string);
 
   await posPage.verifyEarnedPoints(
     (process.env.LOYALTY_CARD_NAME as string) + " Points"
@@ -225,13 +241,17 @@ test("POS-004", async () => {
   // Archive the product
   await inventoryPage.navigateToInventory();
   await inventoryPage.navigateToProductsInventory();
-  await inventoryPage.archiveProduct("auto product");
+  await inventoryPage.archiveProduct(process.env.PRODUCT_NAME as string);
 });
 
 test("POS-005 (Buy one get one)", async () => {
   // Go to the inventory module and create product (to guarantee that our product is exist)
-  await inventoryPage.archiveProduct("auto product");
-  await inventoryPage.createNewProduct("auto product", 100.0, 20);
+  await inventoryPage.archiveProduct(process.env.PRODUCT_NAME as string);
+  await inventoryPage.createNewProduct(
+    process.env.PRODUCT_NAME as string,
+    100.0,
+    20
+  );
 
   // Start creating and configuraing the buy one get one program
   await posPage.navigateToPOS();
@@ -246,16 +266,16 @@ test("POS-005 (Buy one get one)", async () => {
   await posPage.handleSessionOpening();
 
   // Add product and handle lot popup
-  await posPage.addProduct("auto product");
+  await posPage.addProduct(process.env.PRODUCT_NAME as string);
   await posPage.handleLotPopup();
-  await posPage.verifyProductInOrder("auto product");
+  await posPage.verifyProductInOrder(process.env.PRODUCT_NAME as string);
 
   // Make sure the reward fired after reach to configure points
   await posPage.assertRewardFired();
 
   // Redeem Point in orders after increasing the quantity to see the reward
   await posPage.clickToRewardButton();
-  await posPage.assertGettingFreeProduct("auto product");
+  await posPage.assertGettingFreeProduct(process.env.PRODUCT_NAME as string);
 
   // Process payment
   await posPage.initiatePayment();
@@ -275,13 +295,17 @@ test("POS-005 (Buy one get one)", async () => {
   // Archive the product
   await inventoryPage.navigateToInventory();
   await inventoryPage.navigateToProductsInventory();
-  await inventoryPage.archiveProduct("auto product");
+  await inventoryPage.archiveProduct(process.env.PRODUCT_NAME as string);
 });
 
 test("POS-005 (Price cut)", async () => {
   // Go to the inventory module and create product (to guarantee that our product is exist)
-  await inventoryPage.archiveProduct("auto product");
-  await inventoryPage.createNewProduct("auto product", 100.0, 20);
+  await inventoryPage.archiveProduct(process.env.PRODUCT_NAME as string);
+  await inventoryPage.createNewProduct(
+    process.env.PRODUCT_NAME as string,
+    100.0,
+    20
+  );
 
   // Start creating and configuraing the buy one get one program
   await posPage.navigateToPOS();
@@ -294,12 +318,12 @@ test("POS-005 (Price cut)", async () => {
   await posPage.handleSessionOpening();
 
   // Add product and handle lot popup
-  await posPage.addProduct("auto product");
+  await posPage.addProduct(process.env.PRODUCT_NAME as string);
   await posPage.handleLotPopup();
-  await posPage.verifyProductInOrder("auto product");
+  await posPage.verifyProductInOrder(process.env.PRODUCT_NAME as string);
 
   // Assert we have correct discount
-  await posPage.assertGettingPriceCut("auto product");
+  await posPage.assertGettingPriceCut(process.env.PRODUCT_NAME as string);
 
   // Process payment
   await posPage.initiatePayment();
@@ -319,18 +343,18 @@ test("POS-005 (Price cut)", async () => {
   // Archive the product
   await inventoryPage.navigateToInventory();
   await inventoryPage.navigateToProductsInventory();
-  await inventoryPage.archiveProduct("auto product");
+  await inventoryPage.archiveProduct(process.env.PRODUCT_NAME as string);
 });
 
 test("POS-006", async () => {});
 
 test("POS-007", async () => {
   // Go to the inventory module and create product (to guarantee that our product is exist)
-  await inventoryPage.archiveProduct("auto product");
+  await inventoryPage.archiveProduct(process.env.PRODUCT_NAME as string);
   const barCode = Utils.generateBarcode();
   const wrongBarCode = barCode.slice(2);
   await inventoryPage.createNewProductWithBarCode(
-    "auto product",
+    process.env.PRODUCT_NAME as string,
     100.0,
     20,
     barCode
@@ -342,7 +366,7 @@ test("POS-007", async () => {
 
   // Add product buy scanning it's barcode
   await posPage.scanProduct(barCode);
-  await posPage.verifyProductInOrder("auto product");
+  await posPage.verifyProductInOrder(process.env.PRODUCT_NAME as string);
 
   // Assert the wrong/invalid barcode was handled
   await posPage.handleWrongBarcode(wrongBarCode);
@@ -359,5 +383,5 @@ test("POS-007", async () => {
   // Archive the product
   await inventoryPage.navigateToInventory();
   await inventoryPage.navigateToProductsInventory();
-  await inventoryPage.archiveProduct("auto product");
+  await inventoryPage.archiveProduct(process.env.PRODUCT_NAME as string);
 });

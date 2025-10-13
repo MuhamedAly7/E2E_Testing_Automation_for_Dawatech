@@ -1,4 +1,6 @@
 import { Page, expect, Locator, BrowserContext } from "@playwright/test";
+import dotenv from "dotenv";
+dotenv.config();
 
 export class POSPage {
   private page: Page;
@@ -451,7 +453,7 @@ export class POSPage {
     await this.page.waitForTimeout(500);
   }
 
-  private async configureConditionalRulePromotion() {
+  private async configureConditionalRulePromotion(productName: string) {
     // Locate and click the kanban card
     const card = this.page.locator(".oe_kanban_global_click_edit", {
       hasText: "If minimum 50.00 E£ spent",
@@ -476,7 +478,7 @@ export class POSPage {
 
     // Fill products input
     const input = this.page.locator("input.o-autocomplete--input").nth(2);
-    await input.fill("auto product");
+    await input.fill(productName);
     await this.page.waitForTimeout(500);
     await input.press("Enter");
 
@@ -521,7 +523,7 @@ export class POSPage {
     await this.page.waitForTimeout(500);
   }
 
-  async configureRewardsPromotion() {
+  async configureRewardsPromotion(productName: string) {
     // Click the reward card that contains "% discount on your order"
     const rewardCard = this.page.locator(".oe_kanban_global_click_edit", {
       hasText: "% discount on your order",
@@ -538,7 +540,7 @@ export class POSPage {
 
     // Fill product field
     const input = this.page.locator("input.o-autocomplete--input").nth(2);
-    await input.fill("auto product");
+    await input.fill(productName);
     await this.page.waitForTimeout(500);
     await input.press("Enter");
 
@@ -665,8 +667,10 @@ export class POSPage {
     await toField.fill(formattedTomorrow);
 
     // Configure conditional rule and rewards
-    await this.configureConditionalRulePromotion();
-    await this.configureRewardsPromotion();
+    await this.configureConditionalRulePromotion(
+      process.env.PRODUCT_NAME as string
+    );
+    await this.configureRewardsPromotion(process.env.PRODUCT_NAME as string);
 
     // Cloud save
     await this.page.getByRole("button", { name: "Save manually" }).click();
@@ -710,7 +714,9 @@ export class POSPage {
     await toField.fill(formattedTomorrow);
 
     // Configure conditional rule and rewards
-    await this.configureConditionalRulePromotion();
+    await this.configureConditionalRulePromotion(
+      process.env.PRODUCT_NAME as string
+    );
     await this.configureRewardsPromotionPriceCut(50.0);
 
     // Cloud save
