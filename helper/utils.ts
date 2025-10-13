@@ -36,4 +36,21 @@ export class Utils {
       () => digits[Math.floor(Math.random() * digits.length)]
     ).join("");
   }
+
+  static tomorrowDay(): string {
+    const now = new Date();
+    now.setDate(now.getDate() + 1);
+
+    const pad = (n: number) => String(n).padStart(2, "0");
+
+    const month = pad(now.getMonth() + 1);
+    const day = pad(now.getDate());
+    const year = now.getFullYear();
+
+    const hours = pad(now.getHours());
+    const minutes = pad(now.getMinutes());
+    const seconds = pad(now.getSeconds());
+
+    return `${month}/${day}/${year} ${hours}:${minutes}:${seconds}`;
+  }
 }
