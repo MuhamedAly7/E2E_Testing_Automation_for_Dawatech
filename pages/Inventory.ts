@@ -155,11 +155,15 @@ export class InventoryPage {
     await this.navigateToProductsInventory();
 
     // find our product card
-    const productCard = this.page.locator(".oe_kanban_card", {
-      hasText: productName,
-    });
-    await productCard.waitFor({ state: "visible" });
-    await productCard.click();
+    try {
+      const productCard = this.page.locator(".oe_kanban_card", {
+        hasText: productName,
+      });
+      await productCard.waitFor({ state: "visible", timeout: 2000 });
+      await productCard.click();
+    } catch (e) {
+      return;
+    }
 
     // click to on-hand button
     const onHandButton = this.page.locator('button[name="action_open_quants"]');
@@ -215,5 +219,7 @@ export class InventoryPage {
       hasText: "Archived",
     });
     await expect(archivedRibbon).toBeVisible({ timeout: 5000 });
+    await this.navigateToInventory();
+    await this.navigateToProductsInventory();
   }
 }

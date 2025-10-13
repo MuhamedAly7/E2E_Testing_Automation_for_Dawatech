@@ -551,6 +551,36 @@ export class POSPage {
     await this.page.waitForTimeout(500);
   }
 
+  async configureRewardsPromotionPriceCut(discountPercentage: number) {
+    // Click the reward card that contains "% discount on your order"
+    const rewardCard = this.page.locator(".oe_kanban_global_click_edit", {
+      hasText: "% discount on your order",
+    });
+    await rewardCard.click();
+
+    // Wait for modal to appear
+    const modal = this.page.locator(".modal-content.o_form_view");
+    await expect(modal).toBeVisible();
+
+    // Select Reward Type = "Free Product"
+    const rewardTypeSelect = modal.locator("select#reward_type");
+    await rewardTypeSelect.selectOption({ label: "Discount" });
+
+    // Fill discount percentage
+    await this.page.fill("#discount", discountPercentage.toString());
+
+    // Fill percentage sign
+    await this.page.selectOption("#discount_mode", { label: "%" });
+
+    // Fill deccribtion of the reward
+    await this.page.locator("#description").fill("automation");
+
+    // Save and close
+    const saveButton = modal.locator("button.o_form_button_save");
+    await saveButton.click();
+    await this.page.waitForTimeout(500);
+  }
+
   async createLoyalityCard(loyaltyCardName: string) {
     // Clicking to new button
     await this.page.getByRole("button", { name: "New" }).click();
@@ -637,6 +667,51 @@ export class POSPage {
     // Configure conditional rule and rewards
     await this.configureConditionalRulePromotion();
     await this.configureRewardsPromotion();
+
+    // Cloud save
+    await this.page.getByRole("button", { name: "Save manually" }).click();
+    await this.page.waitForTimeout(500);
+  }
+
+  async createProgramPriceCut(programName: string) {
+    // Clicking to new button
+    await this.page.getByRole("button", { name: "New" }).click();
+
+    await this.page.waitForTimeout(1000);
+
+    // Fill the name input
+    await this.page.locator('div[name="name"] input#name').fill(programName);
+    await this.page.waitForTimeout(1000);
+
+    // Select "Promotions" from dropdown
+    await this.page
+      .locator('div[name="program_type"] select#program_type')
+      .selectOption({ label: "Promotions" });
+    await this.page.waitForTimeout(500);
+
+    // Locate and click "Point of Sale" checkpoint
+    await this.page.getByRole("checkbox", { name: "Point of Sale" }).click();
+    await this.page.waitForTimeout(500);
+
+    await this.page.fill("#portal_point_name", programName);
+
+    // Filling dates FROM and TO
+    const today = new Date();
+    const tomorrow = new Date();
+    tomorrow.setDate(today.getDate() + 1);
+
+    const formattedToday = this.formatDate(today);
+    const formattedTomorrow = this.formatDate(tomorrow);
+
+    const fromField = this.page.locator("#date_from");
+    const toField = this.page.locator("#date_to");
+
+    await fromField.fill(formattedToday);
+    await toField.fill(formattedTomorrow);
+
+    // Configure conditional rule and rewards
+    await this.configureConditionalRulePromotion();
+    await this.configureRewardsPromotionPriceCut(50.0);
 
     // Cloud save
     await this.page.getByRole("button", { name: "Save manually" }).click();
@@ -811,14 +886,14 @@ export class POSPage {
     expect(spentValue && spentValue.trim()).toMatch(/^-/);
   }
 
-  async assertGettingFreeProduct() {
+  async assertGettingFreeProduct(productName: string) {
     // Locate Order line
     const orderlines = this.page.locator("ul.orderlines > li.orderline");
 
-    // Get all matching product lines for "auto product" with correct price
+    // Get all matching product lines for productName with correct price
     const autoProducts = orderlines
       .filter({
-        has: this.page.locator(".product-name", { hasText: "auto product" }),
+        has: this.page.locator(".product-name", { hasText: productName }),
       })
       .filter({
         has: this.page.locator(".price", { hasText: "100.00 E£" }),
@@ -836,6 +911,37 @@ export class POSPage {
     // Assertions
     await expect(autoProducts).toHaveCount(2);
     await expect(automationProduct).toHaveCount(1);
+  }
+
+  async assertGettingPriceCut(productName: string) {
+    const orderLines = this.page.locator("ul.orderlines li.orderline");
+
+    // Get price for productName
+    const autoProduct = orderLines.filter({ hasText: productName });
+    const autoProductPriceText = await autoProduct
+      .locator(".price")
+      .textContent();
+    expect(autoProductPriceText).not.toBeNull();
+
+    const autoPrice = parseFloat(autoProductPriceText!.replace(/[^\d.-]/g, ""));
+    expect(autoPrice).toBe(100);
+
+    // Get price for "automation"
+    const automationProduct = orderLines.filter({ hasText: "automation" });
+    const automationPriceText = await automationProduct
+      .locator(".price")
+      .textContent();
+    expect(automationPriceText).not.toBeNull();
+
+    const automationPrice = parseFloat(
+      automationPriceText!.replace(/[^\d.-]/g, "")
+    );
+
+    // Assert it's a negative number
+    expect(automationPrice).toBeLessThan(0);
+
+    // Assert it's half the price of auto product
+    expect(automationPrice).toBeCloseTo(-autoPrice / 2, 2); // 2 decimal precision
   }
 
   async openProgram(programName: string) {
