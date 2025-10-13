@@ -999,4 +999,34 @@ export class POSPage {
       );
     }
   }
+
+  async scanProduct(barCode: string) {
+    // Wait for the input to be visible
+    await this.page.waitForSelector("input.ean");
+
+    // Fill the input with a simple barcode value
+    await this.page.fill("input.ean", barCode);
+
+    // Click the Scan button
+    await this.page.click("li.button.barcode");
+    await this.page.waitForTimeout(2000);
+  }
+
+  async handleWrongBarcode(wrongBarcode: string) {
+    await this.page.waitForTimeout(2000);
+    // scan wrong barcode
+    await this.scanProduct(wrongBarcode);
+
+    // Wait for the popup to appear
+    const popup = this.page.locator(".popup.popup-barcode:visible");
+
+    // Ensure it's visible
+    await expect(popup).toBeVisible({ timeout: 10000 });
+
+    // Cick Ok to continue to next step
+    await popup.locator(".button.cancel").first().click();
+    await this.page.waitForTimeout(1000);
+    await popup.locator(".button.cancel").click();
+    await this.page.waitForTimeout(1000);
+  }
 }

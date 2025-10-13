@@ -4,6 +4,7 @@ import { OrdersPage } from "../pages/OrdersPage";
 import { POSPage } from "../pages/POSPage";
 import { InventoryPage } from "../pages/Inventory";
 import dotenv from "dotenv";
+import { Utils } from "../helper/utils";
 dotenv.config();
 
 let context: BrowserContext;
@@ -323,4 +324,40 @@ test("POS-005 (Price cut)", async () => {
 
 test("POS-006", async () => {});
 
-test("POS-007", async () => {});
+test("POS-007", async () => {
+  // Go to the inventory module and create product (to guarantee that our product is exist)
+  await inventoryPage.archiveProduct("auto product");
+  const barCode = Utils.generateBarcode();
+  const wrongBarCode = barCode.slice(2);
+  await inventoryPage.createNewProductWithBarCode(
+    "auto product",
+    100.0,
+    20,
+    barCode
+  );
+
+  // Open POS
+  await posPage.navigateToPOS();
+  await posPage.handleSessionOpening();
+
+  // Add product buy scanning it's barcode
+  await posPage.scanProduct(barCode);
+  await posPage.verifyProductInOrder("auto product");
+
+  // Assert the wrong/invalid barcode was handled
+  await posPage.handleWrongBarcode(wrongBarCode);
+
+  // Process payment
+  await posPage.initiatePayment();
+  await expect(posPage.getPaymentHeader()).toHaveText("Payment");
+  await posPage.selectPaymentMethod("Cash");
+  await posPage.validatePayment();
+  await posPage.startNewOrder();
+  await posPage.closeSession();
+  await posPage.waitForPOSPage();
+
+  // Archive the product
+  await inventoryPage.navigateToInventory();
+  await inventoryPage.navigateToProductsInventory();
+  await inventoryPage.archiveProduct("auto product");
+});
