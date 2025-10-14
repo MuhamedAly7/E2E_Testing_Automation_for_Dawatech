@@ -41,6 +41,115 @@ export class InventoryPage {
     await expect(breadcrumb).toHaveText("Products");
   }
 
+  async navigateToInternalTransfereInventory() {
+    await this.page.waitForTimeout(1000);
+    // Step 1: Click the Products dropdown button
+    const operationsDropdownButton = this.page.locator(
+      'button.dropdown-toggle[title="Operations"]'
+    );
+    await expect(operationsDropdownButton).toBeVisible();
+    await operationsDropdownButton.click();
+
+    await this.page.waitForTimeout(1000);
+
+    // Step 2: Click the "Products" item in the dropdown list
+    const dropdownInternalTransfereLink = this.page.locator("a.dropdown-item", {
+      hasText: "Internal Transfers",
+    });
+    await expect(dropdownInternalTransfereLink).toBeVisible();
+    await dropdownInternalTransfereLink.click();
+
+    // Step 3: Verify that the Products page is loaded
+    const breadcrumb = this.page.locator(
+      "div.o_cp_top_left >> span.text-truncate"
+    );
+    await expect(breadcrumb).toHaveText("Internal Transfers");
+  }
+
+  async createNewInternalTransfere(
+    contact: string,
+    productName: string,
+    expirationDate: string,
+    demand: number
+  ) {
+    // Clicking to new button
+    await this.page.getByRole("button", { name: "New" }).click();
+    await this.page.waitForTimeout(2000);
+
+    // Fill contact field
+    await this.page.locator("#partner_id").fill(contact);
+    await this.page.keyboard.press("Enter");
+
+    // fill source location
+    await this.page.locator("#location_id").fill("WH");
+    await this.page.keyboard.press("Enter");
+
+    // fill dest location
+    await this.page.locator("#location_id").fill("WH");
+    await this.page.keyboard.press("Enter");
+
+    // Add new line
+    await this.page.getByRole("button", { name: "Add a line" }).click();
+    const productInput = this.page.locator(
+      'td[name="product_id"] input.o-autocomplete--input'
+    );
+    await productInput.fill(productName);
+    await this.page.keyboard.press("Tab");
+
+    // Add expiration date
+    const expirationDateInput = this.page.locator(
+      'td[name="expiration_date"] input.o_datepicker_input'
+    );
+    await expirationDateInput.fill(expirationDate);
+    await this.page.keyboard.press("Tab");
+
+    // Add demand
+    const demandInput = this.page.locator(
+      'td[name="product_uom_qty"] input.o_datepicker_input'
+    );
+    await demandInput.fill(demand.toString());
+    await this.page.keyboard.press("Tab");
+
+    // Get On hand quantity
+    const onHandInput = this.page.locator(
+      'td[name="onhand_qty"] input.o_datepicker_input'
+    );
+    const quantity = await onHandInput.textContent();
+
+    // Assert the quantity must greater than demand
+    expect(quantity).toBeGreaterThanOrEqual(demand);
+
+    // Click "MARK AS TO DO" Button
+    await this.page.getByRole("button", { name: "Mark as Todo" }).click();
+
+    //  Wait for the modal popup to appear
+    const modal = this.page.locator(".modal-content");
+    await expect(modal).toBeVisible();
+
+    // Assert the warning message inside the popup
+    await expect(modal).toContainText(
+      "Source Location and Destination Location can't be the same."
+    );
+
+    // SClick the "Ok" button inside the modal
+    await modal.locator('button:has-text("Ok")').click();
+    await this.page.waitForTimeout(1000);
+
+    // fill dest location
+    await this.page.locator("#location_id").fill("WH2");
+    await this.page.keyboard.press("Enter");
+
+    // Click "MARK AS TO DO" Button again after change dest Warehouse
+    await this.page.getByRole("button", { name: "Mark as Todo" }).click();
+    await this.page.waitForTimeout(2000);
+
+    // Assert on status should be "WAITING" and have specific background color
+    const waitingStage = this.page.locator(
+      "button.o_arrow_button_current.o_arrow_button.disabled.text-uppercase[aria-current='step'][data-value='confirmed']"
+    );
+    await expect(waitingStage).toHaveCSS("background-color", "rgb(36, 55, 66)");
+  }
+
   async createNewProduct(
     productName: string,
     price: number,
@@ -97,7 +206,8 @@ export class InventoryPage {
       .first();
     await locationInput.waitFor({ state: "visible" });
     await locationInput.click();
-    await this.page.keyboard.press("ArrowDown"); // select first option
+    await this.page.waitForTimeout(1000);
+    // await this.page.keyboard.press("ArrowDown"); // select first option
     await this.page.keyboard.press("Enter");
 
     // Step 4 — Fill Expiration Date
@@ -274,66 +384,123 @@ export class InventoryPage {
         hasText: productName,
       });
       await productCard.waitFor({ state: "visible", timeout: 2000 });
+      // Locate the "On hand" element within the product card
+      const onHandLocator = productCard
+        .locator("text=On hand:")
+        .locator("xpath=..");
+
+      // Get the text content
+      const onHandText = await onHandLocator.textContent();
+
+      // Extract the quantity using a regex
+      const match = onHandText?.match(/On hand:\s*([\d.,]+)/);
+      const onHandQuantity = match
+        ? parseFloat(match[1].replace(",", ""))
+        : null;
       await productCard.click();
+
+      if (onHandQuantity === 0) {
+        // Click the Action dropdown button
+        await this.page
+          .locator("button.dropdown-toggle.btn.btn-light", {
+            hasText: "Action",
+          })
+          .click();
+
+        // Wait for the dropdown menu to appear and click “Archive”
+        const archiveOption = this.page.locator(
+          ".o-dropdown--menu .dropdown-item.o_menu_item",
+          { hasText: "Archive" }
+        );
+        await archiveOption.waitFor({ state: "visible", timeout: 5000 });
+        await archiveOption.click();
+
+        // Wait for the confirmation popup and click the "Archive" button inside it
+        const confirmArchiveButton = this.page.locator(
+          ".modal-content .modal-footer button.btn.btn-primary",
+          { hasText: "Archive" }
+        );
+        await confirmArchiveButton.waitFor({ state: "visible", timeout: 5000 });
+        await confirmArchiveButton.click();
+
+        // Expect the “Archived” ribbon to appear on the page
+        const archivedRibbon = this.page.locator(
+          ".ribbon.ribbon-top-right span",
+          {
+            hasText: "Archived",
+          }
+        );
+        await expect(archivedRibbon).toBeVisible({ timeout: 5000 });
+        await this.navigateToInventory();
+        await this.navigateToProductsInventory();
+        return;
+      }
+
+      // click to on-hand button
+      const onHandButton = this.page.locator(
+        'button[name="action_open_quants"]'
+      );
+      await onHandButton.waitFor({ state: "visible" });
+      await onHandButton.click();
+
+      // locate counted quantity and set it to zero
+      await this.page.waitForSelector("table.o_list_table tbody tr");
+      const firstRow = this.page.locator("table.o_list_table tbody tr").first();
+      await firstRow.click();
+      const countedQuantityInput = this.page.locator(
+        'tr.o_data_row.o_selected_row td[name="inventory_quantity"] input.o_input'
+      );
+      await countedQuantityInput.click();
+      await countedQuantityInput.waitFor({ state: "visible" });
+      await countedQuantityInput.fill("0");
+      await this.page.keyboard.press("Enter");
+
+      // click apply button
+      const applyBtn = this.page.locator(
+        'button[name="action_apply_inventory"]'
+      );
+      await applyBtn.waitFor({ state: "visible" });
+      await applyBtn.click();
+
+      const productsBreadcrumb = this.page
+        .locator(".breadcrumb a", { hasText: productName })
+        .first();
+      await productsBreadcrumb.waitFor({ state: "visible" });
+      await productsBreadcrumb.click();
+
+      // Click the Action dropdown button
+      await this.page
+        .locator("button.dropdown-toggle.btn.btn-light", { hasText: "Action" })
+        .click();
+
+      // Wait for the dropdown menu to appear and click “Archive”
+      const archiveOption = this.page.locator(
+        ".o-dropdown--menu .dropdown-item.o_menu_item",
+        { hasText: "Archive" }
+      );
+      await archiveOption.waitFor({ state: "visible", timeout: 5000 });
+      await archiveOption.click();
+
+      // Wait for the confirmation popup and click the "Archive" button inside it
+      const confirmArchiveButton = this.page.locator(
+        ".modal-content .modal-footer button.btn.btn-primary",
+        { hasText: "Archive" }
+      );
+      await confirmArchiveButton.waitFor({ state: "visible", timeout: 5000 });
+      await confirmArchiveButton.click();
+
+      // Expect the “Archived” ribbon to appear on the page
+      const archivedRibbon = this.page.locator(
+        ".ribbon.ribbon-top-right span",
+        {
+          hasText: "Archived",
+        }
+      );
+      await expect(archivedRibbon).toBeVisible({ timeout: 5000 });
+      await this.navigateToInventory();
+      await this.navigateToProductsInventory();
     } catch (e) {
       return;
     }
-
-    // click to on-hand button
-    const onHandButton = this.page.locator('button[name="action_open_quants"]');
-    await onHandButton.waitFor({ state: "visible" });
-    await onHandButton.click();
-
-    // locate counted quantity and set it to zero
-    await this.page.waitForSelector("table.o_list_table tbody tr");
-    const firstRow = this.page.locator("table.o_list_table tbody tr").first();
-    await firstRow.click();
-    const countedQuantityInput = this.page.locator(
-      'tr.o_data_row.o_selected_row td[name="inventory_quantity"] input.o_input'
-    );
-    await countedQuantityInput.click();
-    await countedQuantityInput.waitFor({ state: "visible" });
-    await countedQuantityInput.fill("0");
-    await this.page.keyboard.press("Enter");
-
-    // click apply button
-    const applyBtn = this.page.locator('button[name="action_apply_inventory"]');
-    await applyBtn.waitFor({ state: "visible" });
-    await applyBtn.click();
-
-    const productsBreadcrumb = this.page
-      .locator(".breadcrumb a", { hasText: productName })
-      .first();
-    await productsBreadcrumb.waitFor({ state: "visible" });
-    await productsBreadcrumb.click();
-
-    // 1️⃣ Click the Action dropdown button
-    await this.page
-      .locator("button.dropdown-toggle.btn.btn-light", { hasText: "Action" })
-      .click();
-
-    // 2️⃣ Wait for the dropdown menu to appear and click “Archive”
-    const archiveOption = this.page.locator(
-      ".o-dropdown--menu .dropdown-item.o_menu_item",
-      { hasText: "Archive" }
-    );
-    await archiveOption.waitFor({ state: "visible", timeout: 5000 });
-    await archiveOption.click();
-
-    // 3️⃣ Wait for the confirmation popup and click the "Archive" button inside it
-    const confirmArchiveButton = this.page.locator(
-      ".modal-content .modal-footer button.btn.btn-primary",
-      { hasText: "Archive" }
-    );
-    await confirmArchiveButton.waitFor({ state: "visible", timeout: 5000 });
-    await confirmArchiveButton.click();
-
-    // 4️⃣ Expect the “Archived” ribbon to appear on the page
-    const archivedRibbon = this.page.locator(".ribbon.ribbon-top-right span", {
-      hasText: "Archived",
-    });
-    await expect(archivedRibbon).toBeVisible({ timeout: 5000 });
-    await this.navigateToInventory();
-    await this.navigateToProductsInventory();
   }
 }

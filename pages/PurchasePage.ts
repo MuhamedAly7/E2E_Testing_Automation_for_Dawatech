@@ -8,8 +8,11 @@ export class PurchasePage {
   }
 
   async navigateToPurchase() {
+    await this.page.locator('button[title="Home Menu"]').click();
     await this.page
-      .locator('a[data-menu-xmlid="purchase.menu_purchase_root"]')
+      .locator(
+        'span.dropdown-item.o_app[data-menu-xmlid="purchase.menu_purchase_root"]'
+      )
       .click();
   }
 
