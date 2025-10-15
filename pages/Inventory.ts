@@ -208,8 +208,8 @@ export class InventoryPage {
   async AssertOnStokeQuantities(productName: string) {
     await this.page.waitForTimeout(2000);
     // Navigate to products in inventory
-    this.navigateToInventory();
-    this.navigateToProductsInventory();
+    await this.navigateToInventory();
+    await this.navigateToProductsInventory();
 
     // Navigate to or product card and go inside product
     const productCard = this.page.locator(".oe_kanban_card", {
@@ -228,7 +228,7 @@ export class InventoryPage {
     await this.page.waitForTimeout(2000);
 
     // Find all rows
-    const rows = await this.page.locator("table.o_list_table tbody tr");
+    const rows = await this.page.locator("table.o_list_table tbody tr.o_data_row");
     const rowCount = await rows.count();
     for (let i = 0; i < rowCount; i++) {
       const row = rows.nth(i);
@@ -566,7 +566,7 @@ export class InventoryPage {
         await this.page.keyboard.press("Tab");
 
         // Wait a little (optional, to stabilize UI)
-        await this.page.waitForTimeout(300);
+        await this.page.waitForTimeout(1000);
 
         // Click the "Apply" button
         const applyBtn = this.page.locator(
@@ -576,7 +576,7 @@ export class InventoryPage {
         await applyBtn.click();
 
         // Wait for apply to complete — use waitForSelector or similar to wait for UI update
-        await this.page.waitForTimeout(1000); // or better: wait for a specific change
+        await this.page.waitForTimeout(2000); // or better: wait for a specific change
       }
 
       const productsBreadcrumb = this.page
