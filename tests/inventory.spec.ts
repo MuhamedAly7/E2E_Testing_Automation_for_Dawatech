@@ -40,13 +40,13 @@ test.afterAll(async () => {
 });
 
 test("INV-001", async () => {
-  // Go to the inventory module and create product (to guarantee that our product is exist)
-  await inventoryPage.archiveProduct(process.env.PRODUCT_NAME as string);
-  await inventoryPage.createNewProduct(
-    process.env.PRODUCT_NAME as string,
-    100.0,
-    20
-  );
+  // // Go to the inventory module and create product (to guarantee that our product is exist)
+  // await inventoryPage.archiveProduct(process.env.PRODUCT_NAME as string);
+  // await inventoryPage.createNewProduct(
+  //   process.env.PRODUCT_NAME as string,
+  //   100.0,
+  //   20
+  // );
 
   // // Go to internal transfere page
   // await inventoryPage.navigateToInventory();
@@ -55,8 +55,16 @@ test("INV-001", async () => {
   // // Make internal transfere
   // await inventoryPage.createNewInternalTransfere(
   //   process.env.USERNAME_CUSTOMERNAME_CASHIERNAME as string,
-  //   "scan product",
+  //   process.env.PRODUCT_NAME as string,
   //   "101030",
   //   1
   // );
+
+  // Make sure the transfere has been commited by validating product quantity in every store
+  await inventoryPage.AssertOnStokeQuantities(
+    process.env.PRODUCT_NAME as string
+  );
+
+  // // Archive the product at the end
+  // await inventoryPage.archiveProduct(process.env.PRODUCT_NAME as string);
 });

@@ -18,7 +18,7 @@ export class InventoryPage {
 
   async navigateToProductsInventory() {
     await this.page.waitForTimeout(1000);
-    // Step 1: Click the Products dropdown button
+    // Click the Products dropdown button
     const productsDropdownButton = this.page.locator(
       'button.dropdown-toggle[title="Products"]'
     );
@@ -27,14 +27,14 @@ export class InventoryPage {
 
     await this.page.waitForTimeout(1000);
 
-    // Step 2: Click the "Products" item in the dropdown list
+    // Click the "Products" item in the dropdown list
     const dropdownProductLink = this.page.locator("a.dropdown-item", {
       hasText: "Products",
     });
     await expect(dropdownProductLink).toBeVisible();
     await dropdownProductLink.click();
 
-    // Step 3: Verify that the Products page is loaded
+    // Verify that the Products page is loaded
     const breadcrumb = this.page.locator(
       "div.o_cp_top_left >> span.text-truncate"
     );
@@ -43,7 +43,7 @@ export class InventoryPage {
 
   async navigateToInternalTransfereInventory() {
     await this.page.waitForTimeout(1000);
-    // Step 1: Click the Products dropdown button
+    // Click the Products dropdown button
     const operationsDropdownButton = this.page.locator(
       'button.dropdown-toggle[title="Operations"]'
     );
@@ -52,14 +52,14 @@ export class InventoryPage {
 
     await this.page.waitForTimeout(1000);
 
-    // Step 2: Click the "Products" item in the dropdown list
+    // Click the "Products" item in the dropdown list
     const dropdownInternalTransfereLink = this.page.locator("a.dropdown-item", {
       hasText: "Internal Transfers",
     });
     await expect(dropdownInternalTransfereLink).toBeVisible();
     await dropdownInternalTransfereLink.click();
 
-    // Step 3: Verify that the Products page is loaded
+    // Verify that the Products page is loaded
     const breadcrumb = this.page.locator(
       "div.o_cp_top_left >> span.text-truncate"
     );
@@ -85,7 +85,7 @@ export class InventoryPage {
     await this.page.keyboard.press("Enter");
 
     // fill dest location
-    await this.page.locator("#location_id").fill("WH");
+    await this.page.locator("#location_dest_id").fill("WH");
     await this.page.keyboard.press("Enter");
 
     // Add new line
@@ -93,8 +93,21 @@ export class InventoryPage {
     const productInput = this.page.locator(
       'td[name="product_id"] input.o-autocomplete--input'
     );
+
     await productInput.fill(productName);
     await this.page.keyboard.press("Tab");
+    await this.page.waitForTimeout(500);
+
+    // Select Lot source
+    const lotInput = this.page.locator(
+      'td[name="lot_id"] input.o-autocomplete--input'
+    );
+    await lotInput.click();
+    await this.page.waitForTimeout(500);
+    await this.page.keyboard.press("Enter");
+    await this.page.waitForTimeout(500);
+    await this.page.keyboard.press("Tab");
+    await this.page.waitForTimeout(500);
 
     // Add expiration date
     const expirationDateInput = this.page.locator(
@@ -102,25 +115,28 @@ export class InventoryPage {
     );
     await expirationDateInput.fill(expirationDate);
     await this.page.keyboard.press("Tab");
+    await this.page.waitForTimeout(500);
 
     // Add demand
     const demandInput = this.page.locator(
-      'td[name="product_uom_qty"] input.o_datepicker_input'
+      'td[name="product_uom_qty"] input.o_input'
     );
     await demandInput.fill(demand.toString());
     await this.page.keyboard.press("Tab");
+    await this.page.waitForTimeout(500);
 
     // Get On hand quantity
-    const onHandInput = this.page.locator(
-      'td[name="onhand_qty"] input.o_datepicker_input'
-    );
+    const onHandInput = this.page.locator('td[name="onhand_qty"] span');
     const quantity = await onHandInput.textContent();
 
+    const HandQuantity = parseFloat(quantity as string);
+
     // Assert the quantity must greater than demand
-    expect(quantity).toBeGreaterThanOrEqual(demand);
+    expect(HandQuantity).toBeGreaterThanOrEqual(demand);
 
     // Click "MARK AS TO DO" Button
     await this.page.getByRole("button", { name: "Mark as Todo" }).click();
+    await this.page.waitForTimeout(1000);
 
     //  Wait for the modal popup to appear
     const modal = this.page.locator(".modal-content");
@@ -136,18 +152,100 @@ export class InventoryPage {
     await this.page.waitForTimeout(1000);
 
     // fill dest location
-    await this.page.locator("#location_id").fill("WH2");
+    await this.page.locator("#location_dest_id").fill("WH2");
     await this.page.keyboard.press("Enter");
+
+    await this.page.waitForTimeout(2000);
 
     // Click "MARK AS TO DO" Button again after change dest Warehouse
     await this.page.getByRole("button", { name: "Mark as Todo" }).click();
     await this.page.waitForTimeout(2000);
 
     // Assert on status should be "WAITING" and have specific background color
-    const waitingStage = this.page.locator(
-      "button.o_arrow_button_current.o_arrow_button.disabled.text-uppercase[aria-current='step'][data-value='confirmed']"
+    // Locate the "Ready" button in the status bar
+    const readyStatusButton = this.page.locator(
+      '.o_statusbar_status button.o_arrow_button_current[aria-checked="true"]'
     );
-    await expect(waitingStage).toHaveCSS("background-color", "rgb(36, 55, 66)");
+    // Wait until it is visible
+    await readyStatusButton.waitFor({ state: "visible" });
+    await expect(readyStatusButton).toHaveCSS(
+      "background-color",
+      "rgb(36, 55, 66)"
+    );
+    await this.page.waitForTimeout(500);
+
+    // Validate
+    const validateButton = this.page.locator('button[name="button_validate"]');
+    await validateButton.waitFor({ state: "visible" });
+    await validateButton.click();
+
+    // Handle modal and click to apply button
+    const modalApply = this.page.locator(".modal-dialog.modal-lg");
+    await expect(modal).toBeVisible();
+
+    // Assert modal title text (optional but good practice)
+    const modalTitle = modalApply.locator(".modal-title");
+    await expect(modalTitle).toHaveText("Immediate Transfer?");
+
+    // Locate the Apply button inside modal
+    const applyButton = modalApply.locator('button[name="process"]');
+
+    // Wait for it and click
+    await applyButton.waitFor({ state: "visible" });
+    await applyButton.click();
+
+    await this.page.waitForTimeout(2000);
+
+    // Assert done status
+    const doneStatus = this.page.locator(
+      '.o_statusbar_status .o_arrow_button_current[data-value="done"]'
+    );
+    // Ensure the status is visible
+    await expect(doneStatus).toBeVisible();
+    await expect(doneStatus).toHaveCSS("background-color", "rgb(36, 55, 66)");
+  }
+
+  async AssertOnStokeQuantities(productName: string) {
+    await this.page.waitForTimeout(2000);
+    // Navigate to products in inventory
+    this.navigateToInventory();
+    this.navigateToProductsInventory();
+
+    // Navigate to or product card and go inside product
+    const productCard = this.page.locator(".oe_kanban_card", {
+      hasText: productName,
+    });
+    await productCard.waitFor({ state: "visible", timeout: 2000 });
+    await productCard.click();
+
+    // wait for product details
+    await this.page.waitForTimeout(2000);
+
+    // click to on-hand button
+    const onHandButton = this.page.locator('button[name="action_open_quants"]');
+    await onHandButton.waitFor({ state: "visible" });
+    await onHandButton.click();
+    await this.page.waitForTimeout(2000);
+
+    // Find all rows
+    const rows = await this.page.locator("table.o_list_table tbody tr");
+    const rowCount = await rows.count();
+    for (let i = 0; i < rowCount; i++) {
+      const row = rows.nth(i);
+      const location = await row.locator('td[name="location_id"]').innerText();
+      const quantityText = await row.locator('td[name="quantity"]').innerText();
+
+      // Remove whitespace and parse quantity
+      const quantity = parseFloat(quantityText.trim());
+
+      if (location === "WH/Stock") {
+        expect(quantity).toBe(19);
+      }
+
+      if (location === "WH2/Stock") {
+        expect(quantity).toBe(1);
+      }
+    }
   }
 
   async createNewProduct(
@@ -210,7 +308,7 @@ export class InventoryPage {
     // await this.page.keyboard.press("ArrowDown"); // select first option
     await this.page.keyboard.press("Enter");
 
-    // Step 4 — Fill Expiration Date
+    // Fill Expiration Date
     const expiryDateInput = this.page.locator(
       'tr.o_data_row.o_selected_row td[name="expiration_date"] input.o_input'
     );
@@ -218,34 +316,34 @@ export class InventoryPage {
     await expiryDateInput.fill("101028");
     await this.page.keyboard.press("Tab");
 
-    // Step 5 — Fill Counted Quantity
+    // Fill Counted Quantity
     const countedQuantityInput = this.page.locator(
       'tr.o_data_row.o_selected_row td[name="inventory_quantity"] input.o_input'
     );
     await countedQuantityInput.waitFor({ state: "visible" });
     await countedQuantityInput.fill("20");
 
-    // Step 6 — Click Apply button
+    // Click Apply button
     const applyBtn = this.page.locator('button[name="action_apply_inventory"]');
     await applyBtn.waitFor({ state: "visible" });
     await applyBtn.click();
 
     await this.page.waitForTimeout(5000);
 
-    // Step 7 — Navigate back to “Products” via breadcrumb
+    // Navigate back to “Products” via breadcrumb
     const productsBreadcrumb = this.page
       .locator(".breadcrumb a", { hasText: "Products" })
       .first();
     await productsBreadcrumb.waitFor({ state: "visible" });
     await productsBreadcrumb.click();
 
-    // Step 8 — Assert the created product exists
+    // Assert the created product exists
     const productCard = this.page.locator(".oe_kanban_card", {
       hasText: productName,
     });
     await productCard.waitFor({ state: "visible" });
 
-    // Step 9 — Validate On Hand and Price info
+    // Validate On Hand and Price info
     const priceText = await productCard
       .locator('[name="list_price"]')
       .innerText();
@@ -301,19 +399,19 @@ export class InventoryPage {
     await this.page.getByRole("button", { name: "Save manually" }).click();
     await this.page.waitForTimeout(2000);
 
-    // Step 1 — Click on the “On Hand” button
+    // Click on the “On Hand” button
     const onHandButton = this.page.locator('button[name="action_open_quants"]');
     await onHandButton.waitFor({ state: "visible" });
     await onHandButton.click();
 
-    // Step 2 — Click “New” in the Quant list view
+    // Click “New” in the Quant list view
     const newQuantBtn = this.page.locator(
       "button.btn.btn-primary.o_list_button_add"
     );
     await newQuantBtn.waitFor({ state: "visible" });
     await newQuantBtn.click();
 
-    // Step 3 — Select first location (click dropdown + press Enter)
+    // Select first location (click dropdown + press Enter)
     const locationInput = this.page
       .locator(
         'tr.o_data_row.o_selected_row td[name="location_id"] input.o_input'
@@ -324,7 +422,7 @@ export class InventoryPage {
     await this.page.keyboard.press("ArrowDown"); // select first option
     await this.page.keyboard.press("Enter");
 
-    // Step 4 — Fill Expiration Date
+    // Fill Expiration Date
     const expiryDateInput = this.page.locator(
       'tr.o_data_row.o_selected_row td[name="expiration_date"] input.o_input'
     );
@@ -332,34 +430,34 @@ export class InventoryPage {
     await expiryDateInput.fill("101028");
     await this.page.keyboard.press("Tab");
 
-    // Step 5 — Fill Counted Quantity
+    // Fill Counted Quantity
     const countedQuantityInput = this.page.locator(
       'tr.o_data_row.o_selected_row td[name="inventory_quantity"] input.o_input'
     );
     await countedQuantityInput.waitFor({ state: "visible" });
     await countedQuantityInput.fill("20");
 
-    // Step 6 — Click Apply button
+    // Click Apply button
     const applyBtn = this.page.locator('button[name="action_apply_inventory"]');
     await applyBtn.waitFor({ state: "visible" });
     await applyBtn.click();
 
     await this.page.waitForTimeout(5000);
 
-    // Step 7 — Navigate back to “Products” via breadcrumb
+    // Navigate back to “Products” via breadcrumb
     const productsBreadcrumb = this.page
       .locator(".breadcrumb a", { hasText: "Products" })
       .first();
     await productsBreadcrumb.waitFor({ state: "visible" });
     await productsBreadcrumb.click();
 
-    // Step 8 — Assert the created product exists
+    // Assert the created product exists
     const productCard = this.page.locator(".oe_kanban_card", {
       hasText: productName,
     });
     await productCard.waitFor({ state: "visible" });
 
-    // Step 9 — Validate On Hand and Price info
+    // Validate On Hand and Price info
     const priceText = await productCard
       .locator('[name="list_price"]')
       .innerText();
@@ -445,22 +543,41 @@ export class InventoryPage {
 
       // locate counted quantity and set it to zero
       await this.page.waitForSelector("table.o_list_table tbody tr");
-      const firstRow = this.page.locator("table.o_list_table tbody tr").first();
-      await firstRow.click();
-      const countedQuantityInput = this.page.locator(
-        'tr.o_data_row.o_selected_row td[name="inventory_quantity"] input.o_input'
-      );
-      await countedQuantityInput.click();
-      await countedQuantityInput.waitFor({ state: "visible" });
-      await countedQuantityInput.fill("0");
-      await this.page.keyboard.press("Enter");
+      // const firstRow = this.page.locator("table.o_list_table tbody tr").first();
+      // Locate all rows
+      const rowCount = await this.page
+        .locator("table.o_list_table tbody tr.o_data_row")
+        .count();
 
-      // click apply button
-      const applyBtn = this.page.locator(
-        'button[name="action_apply_inventory"]'
-      );
-      await applyBtn.waitFor({ state: "visible" });
-      await applyBtn.click();
+      for (let rowIndex = 0; rowIndex < rowCount; rowIndex++) {
+        const row = this.page.locator("table.o_list_table tbody tr").first();
+
+        // Click the row to select it
+        await row.click();
+
+        // Locate the counted quantity input inside the selected row
+        const countedQuantityInput = this.page.locator(
+          'tr.o_data_row.o_selected_row td[name="inventory_quantity"] input.o_input'
+        );
+
+        // Wait for input and fill it
+        await countedQuantityInput.waitFor({ state: "visible" });
+        await countedQuantityInput.fill("0");
+        await this.page.keyboard.press("Tab");
+
+        // Wait a little (optional, to stabilize UI)
+        await this.page.waitForTimeout(300);
+
+        // Click the "Apply" button
+        const applyBtn = this.page.locator(
+          'button[name="action_apply_inventory"]'
+        );
+        await applyBtn.waitFor({ state: "visible" });
+        await applyBtn.click();
+
+        // Wait for apply to complete — use waitForSelector or similar to wait for UI update
+        await this.page.waitForTimeout(1000); // or better: wait for a specific change
+      }
 
       const productsBreadcrumb = this.page
         .locator(".breadcrumb a", { hasText: productName })
