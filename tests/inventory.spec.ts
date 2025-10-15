@@ -68,3 +68,26 @@ test("INV-001", async () => {
   // Archive the product at the end
   await inventoryPage.archiveProduct(process.env.PRODUCT_NAME as string);
 });
+
+test("INV-002", async () => {
+  // Create new product
+  const initialQuantity = 20;
+  await inventoryPage.archiveProduct(process.env.PRODUCT_NAME as string);
+  await inventoryPage.createNewProduct(
+    process.env.PRODUCT_NAME as string,
+    100.0,
+    initialQuantity
+  );
+
+  // Navigate to product in inventory module
+  await inventoryPage.navigateToInventory();
+  await inventoryPage.navigateToInventoryAdjustmentScreen();
+
+  // Start creating new adjustment screen
+  await inventoryPage.createNewInventoryAdjustmentScreen(process.env.PRODUCT_NAME as string, initialQuantity);
+
+  // Validate the adjustment happened successfully and reflects to inventory
+  await inventoryPage.assertOnProductInventory(process.env.PRODUCT_NAME as string, initialQuantity);
+
+  await inventoryPage.archiveProduct(process.env.PRODUCT_NAME as string);
+});

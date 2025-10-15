@@ -16,6 +16,136 @@ export class InventoryPage {
       .click();
   }
 
+  async navigateToInventoryAdjustmentScreen() {
+    await this.page.waitForTimeout(1000);
+    // Click the Operations dropdown button
+    const OperationsDropdownButton = this.page.locator(
+      'button.dropdown-toggle[title="Operations"]'
+    );
+    await expect(OperationsDropdownButton).toBeVisible();
+    await OperationsDropdownButton.click();
+
+    await this.page.waitForTimeout(1000);
+
+    // Click the "Inventory Adjustment Screen" item in the dropdown list
+    const dropdownInventoryAdjustmentScreenLink = this.page.locator("a.dropdown-item", {
+      hasText: "Inventory Adjustments Screen",
+    });
+    await expect(dropdownInventoryAdjustmentScreenLink).toBeVisible();
+    await dropdownInventoryAdjustmentScreenLink.click();
+
+    // Verify that the Products page is loaded
+    const breadcrumb = this.page.locator(
+      "div.o_cp_top_left >> span.text-truncate"
+    );
+    await expect(breadcrumb).toHaveText("Inventory Adjustments");
+  }
+
+  async createNewInventoryAdjustmentScreen(productName: string, theoreticalQuantity: number) {
+    // start create new Inventory adjustment
+    // Clicking to new button
+    await this.page.getByRole("button", { name: "New" }).click();
+    await this.page.waitForTimeout(2000);
+
+    // Fill name of adjustment
+    await this.page.locator("#name").fill("Auto test adjustment");
+
+    const locationInput = this.page.locator("#location_id");
+    await locationInput.click();
+    await this.page.waitForTimeout(2000);
+    await locationInput.fill("WH");
+    await this.page.waitForTimeout(1000);
+    await this.page.keyboard.press("Enter");
+
+    await this.page.waitForTimeout(1000);
+
+    // Select radio input that responsible for "Select Products Manually"
+    await this.page.getByRole('radio', { name: 'Select products manually' }).check();
+
+    // start the Adjustment
+    const startButton = this.page.getByRole("button", { name: "Start Inventory" });
+    await startButton.waitFor({ state: "visible" });
+    await startButton.click();
+
+    await this.page.waitForTimeout(2000);
+
+    // Assert on "In Progress" status
+    const inProgressButton = this.page.locator('button.o_arrow_button_current', { hasText: 'In Progress' });
+    await inProgressButton.waitFor({ state: 'visible' });
+    await expect(inProgressButton).toHaveCSS("background-color", "rgb(36, 55, 66)");
+
+    // Add new line
+    await this.page.getByRole("button", { name: "Add a line" }).click();
+    const productInput = this.page.locator(
+      'td[name="product_id"] input.o-autocomplete--input'
+    );
+
+    await productInput.fill(productName);
+    await this.page.keyboard.press("Tab");
+    await this.page.waitForTimeout(500);
+
+    // Select Lot source
+    const lotInput = this.page.locator(
+      'td[name="prod_lot_id"] input.o-autocomplete--input'
+    );
+    await lotInput.click();
+    await this.page.waitForTimeout(500);
+    await this.page.keyboard.press("Enter");
+    await this.page.waitForTimeout(500);
+    await this.page.keyboard.press("Tab");
+    await this.page.waitForTimeout(500);
+
+    // Set real product Quantity
+    const realQuantityInput = this.page.locator(
+      'td[name="product_qty"] input.o_input'
+    );
+    const afterAdjustmentQuantity = theoreticalQuantity + 1;
+    await realQuantityInput.fill(afterAdjustmentQuantity.toString());
+    await this.page.keyboard.press("Tab");
+    await this.page.waitForTimeout(1500);
+
+    // Action validate
+    const validateButton = this.page.getByRole("button", { name: "Validate Inventory" });
+    await validateButton.waitFor({ state: "visible" });
+    await validateButton.click();
+    await this.page.waitForTimeout(3000);
+
+    // Assert on "Validated" status
+    const validatedButton = this.page.locator('button.o_arrow_button_current', { hasText: 'Validated' });
+    await validatedButton.waitFor({ state: 'visible' });
+    await expect(validatedButton).toHaveCSS("background-color", "rgb(36, 55, 66)");
+    await this.page.waitForTimeout(1000);
+  }
+
+  async assertOnProductInventory(productName: string, initialQuantity: number) {
+    await this.navigateToInventory();
+    await this.navigateToProductsInventory();
+
+    // Navigate to or product card and go inside product
+    const productCard = this.page.locator(".oe_kanban_card", {
+      hasText: productName,
+    });
+    await productCard.waitFor({ state: "visible", timeout: 2000 });
+    await productCard.click();
+
+    // wait for product details
+    await this.page.waitForTimeout(2000);
+
+    // click to on-hand button
+    const onHandButton = this.page.locator('button[name="action_open_quants"]');
+    await onHandButton.waitFor({ state: "visible" });
+    await onHandButton.click();
+    await this.page.waitForTimeout(2000);
+
+    const rows = await this.page.locator("table.o_list_table tbody tr.o_data_row");
+    const row = rows.first();
+    const newQuantity = await row.locator('td[name="quantity"]').innerText();
+
+    // Asset to new quantity
+    expect(parseInt(newQuantity)).toEqual(initialQuantity + 1);
+    await this.page.waitForTimeout(1000);
+  }
+
   async navigateToProductsInventory() {
     await this.page.waitForTimeout(1000);
     // Click the Products dropdown button
