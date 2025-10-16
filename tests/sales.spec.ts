@@ -43,12 +43,24 @@ test.afterAll(async () => {
 });
 
 test("SAL-001", async () => {
+    const initialQuantity = 20;
     // await inventoryPage.archiveProduct(process.env.PRODUCT_NAME as string);
-    // await inventoryPage.createNewProduct(process.env.PRODUCT_NAME as string, 100.0, 20);
+    // await inventoryPage.createNewProduct(process.env.PRODUCT_NAME as string, 100.0, initialQuantity);
 
     await salesPage.navigateToSalesModule();
-    await salesPage.createNewQuotation(process.env.USERNAME_CUSTOMERNAME_CASHIERNAME as string, );
+    await salesPage.createNewQuotationAndGenerateInvoice(process.env.USERNAME_CUSTOMERNAME_CASHIERNAME as string, process.env.PRODUCT_NAME as string, 1.0);
 
     // await inventoryPage.archiveProduct(process.env.PRODUCT_NAME as string);
 });
-test("SAL-002", async () => {});
+test("SAL-002", async () => {
+  const initialQuantity = 20;
+  // await inventoryPage.archiveProduct(process.env.PRODUCT_NAME as string);
+  // await inventoryPage.createNewProduct(process.env.PRODUCT_NAME as string, 100.0, initialQuantity);
+
+  await salesPage.navigateToSalesModule();
+  await salesPage.createNewQuotationAndGenerateInvoice(process.env.USERNAME_CUSTOMERNAME_CASHIERNAME as string, process.env.PRODUCT_NAME as string, 1.0);
+
+  await salesPage.returnFromDelivery();
+
+  // await inventoryPage.archiveProduct(process.env.PRODUCT_NAME as string);
+});

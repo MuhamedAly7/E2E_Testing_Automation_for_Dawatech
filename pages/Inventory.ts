@@ -414,19 +414,19 @@ export class InventoryPage {
     // Cloud save
     await this.page.getByRole("button", { name: "Save manually" }).click();
 
-    // Step 1 — Click on the “On Hand” button
+    // Click on the “On Hand” button
     const onHandButton = this.page.locator('button[name="action_open_quants"]');
     await onHandButton.waitFor({ state: "visible" });
     await onHandButton.click();
 
-    // Step 2 — Click “New” in the Quant list view
+    // Click “New” in the Quant list view
     const newQuantBtn = this.page.locator(
       "button.btn.btn-primary.o_list_button_add"
     );
     await newQuantBtn.waitFor({ state: "visible" });
     await newQuantBtn.click();
 
-    // Step 3 — Select first location (click dropdown + press Enter)
+    // Select first location (click dropdown + press Enter)
     const locationInput = this.page
       .locator(
         'tr.o_data_row.o_selected_row td[name="location_id"] input.o_input'
