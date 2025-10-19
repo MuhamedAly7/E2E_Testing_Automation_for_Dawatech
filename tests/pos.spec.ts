@@ -346,7 +346,48 @@ test("POS-005 (Price cut)", async () => {
   await inventoryPage.archiveProduct(process.env.PRODUCT_NAME as string);
 });
 
-test("POS-006", async () => {});
+test("POS-006 (employee should be allowed to have discount permission)", async () => {
+  const productPrice = 100.0;
+  // // Go to the inventory module and create product (to guarantee that our product is exist)
+  // await inventoryPage.archiveProduct(process.env.PRODUCT_NAME as string);
+  // await inventoryPage.createNewProduct(
+  //   process.env.PRODUCT_NAME as string,
+  //   productPrice,
+  //   20
+  // );
+
+  // Open POS
+  await posPage.navigateToPOS();
+  await posPage.handleSessionOpening();
+
+  // Add product and handle lot popup
+  await posPage.addProduct(process.env.PRODUCT_NAME as string);
+  await posPage.handleLotPopup();
+  await posPage.verifyProductInOrder(process.env.PRODUCT_NAME as string);
+
+  // Set 10% discount
+  await posPage.setGlobalDiscount(10);
+  await posPage.confirmDiscountedProduct();
+
+  const priceAfterDiscount = productPrice - (productPrice * 0.1);
+
+  // Process payment
+  await posPage.initiatePayment();
+  await expect(posPage.getPaymentHeader()).toHaveText("Payment");
+  await posPage.selectPaymentMethodWithAmount("Cash", priceAfterDiscount / 3);
+  await posPage.selectPaymentMethodWithAmount("Bank", priceAfterDiscount / 3);
+  await posPage.selectCustomerFromPaymentPage(process.env.USERNAME_CUSTOMERNAME_CASHIERNAME as string);
+  await posPage.selectPaymentMethodWithAmount("Customer Account", priceAfterDiscount / 3);
+  await posPage.validatePayment();
+  await posPage.startNewOrder();
+  await posPage.closeSession();
+  await posPage.waitForPOSPage();
+
+  // // Archive the product
+  // await inventoryPage.navigateToInventory();
+  // await inventoryPage.navigateToProductsInventory();
+  // await inventoryPage.archiveProduct(process.env.PRODUCT_NAME as string);
+});
 
 test("POS-007", async () => {
   // Go to the inventory module and create product (to guarantee that our product is exist)

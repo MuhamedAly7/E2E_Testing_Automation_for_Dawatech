@@ -19,6 +19,37 @@ export class POSPage {
       .click();
   }
 
+  async setGlobalDiscount(percentage: number) {
+    // Cick to global discount button
+    await this.page.waitForTimeout(1000);
+    const globalDiscountLink = this.page.locator('.global_discount_button a.btn.btn-primary');
+    await globalDiscountLink.waitFor({ state: 'visible' });
+    await globalDiscountLink.click();
+
+    await this.page.waitForTimeout(1000);
+
+    // Locate and assert popup visible
+    const discountPopup = this.page.locator('.popup.sh_discount_popup');
+    await expect(discountPopup).toBeVisible();
+    await discountPopup.locator('label[for="discount_percentage_radio"]').click();
+    await discountPopup.locator('input.sh_discount_value').fill(percentage.toString());
+      
+    // Click "Confirm"
+    await discountPopup.locator('.footer .button.confirm').click();
+
+    await this.page.waitForTimeout(2000);
+  }
+  
+  async confirmDiscountedProduct() {
+    // Assert line item shows 10% discount
+    const lineDiscount = this.page.locator('.orderline.selected .info-list li.info', { hasText: 'discount' });
+    await expect(lineDiscount).toContainText('10.00%');
+
+    // Assert global summary shows the correct discount amount
+    const globalDiscount = this.page.locator('.global_discount_line .global_fixed_discount .subentry');
+    await expect(globalDiscount).toContainText('10.00');
+  }
+
   async navigateToDiscountAndLoyalty() {
     await this.page.waitForTimeout(1000);
     // Step 1: Click the Products dropdown button
@@ -180,6 +211,52 @@ export class POSPage {
       })
       .click();
   }
+
+  async selectPaymentMethodWithAmount(method: string, amount: number) {
+    // Click the payment method
+    await this.page
+      .locator('.paymentmethods .paymentmethod .payment-name', { hasText: method })
+      .click();
+
+    // optional short wait if UI needs time to open numpad
+    await this.page.waitForTimeout(500);
+
+    // Convert amount to string and loop through characters
+    const amountStr = amount.toString(); // e.g. 125.5 -> "125.5"
+
+    for (const ch of amountStr) {
+      // Locate the numpad button with the same visible text
+      const button = this.page.locator('.payment-numpad .number-char', { hasText: ch });
+      await button.click();
+      await this.page.waitForTimeout(500);
+    }
+    await this.page.waitForTimeout(1000);
+  }
+
+  async selectCustomerFromPaymentPage(customerName: string) {
+    await this.page.waitForTimeout(1000);
+    await this.page.locator('.toggle[title="Dismiss"]').click();
+    await this.page.waitForTimeout(1000);
+
+    const customerButton = this.page.locator('.button', { hasText: 'Customer' }).nth(1);
+    await customerButton.waitFor({ state: 'visible' });
+    await customerButton.click();
+
+    // Wait for the customer table to appear
+    const customerTable = this.page.locator("table.partner-list");
+    await expect(customerTable).toBeVisible({ timeout: 5000 });
+
+    // Locate the row that contains the name 'customer name'
+    const targetRow = customerTable.locator("tr.partner-line", {
+      hasText: customerName,
+    });
+    await expect(targetRow).toBeVisible();
+
+    // Click on that row
+    await targetRow.click();
+    await this.page.waitForTimeout(1000);
+  }
+
 
   async validatePayment() {
     const validateBtn = this.page.locator(".button.next.validation.highlight");
