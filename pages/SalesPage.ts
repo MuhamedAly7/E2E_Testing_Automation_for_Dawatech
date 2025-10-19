@@ -205,12 +205,12 @@ export class SalesPage {
     await this.page.waitForTimeout(2000);
 
     // click to return button
-    await this.page.getByRole("button", {name: "Return"}).click();
+    await this.page.getByRole("button", { name: "Return" }).click();
 
     const returnmodal = this.page.locator('.modal-content:has-text("Reverse Transfer")');
     await expect(returnmodal).toBeVisible();
     await expect(returnmodal.locator('.modal-title')).toHaveText(/Reverse Transfer/i);
-    const returnBtn = returnmodal.getByRole("button", {name: "Return"});
+    const returnBtn = returnmodal.getByRole("button", { name: "Return" });
     await expect(returnBtn).toBeVisible();
     await returnBtn.click();
 
@@ -253,10 +253,74 @@ export class SalesPage {
     await InvoicesButton.click();
 
     await this.page.waitForTimeout(2000);
+  }
 
+  async createCreditNote() {
+    // Start create credit note
     const creditNoteButton = this.page.locator('button[name="action_reverse"]');
     await creditNoteButton.waitFor({ state: 'visible' });
     await creditNoteButton.click();
 
+    // expect a popup with "Credit Note" heading
+    const addCreditNotemodal = this.page.locator('.modal-content:has-text("Credit Note")');
+    await expect(addCreditNotemodal).toBeVisible();
+
+    // Assert modal header is correct (optional, for clarity)
+    await expect(addCreditNotemodal.locator('.modal-title')).toHaveText(/Credit Note/i);
+
+    const reasonField = this.page.locator("#reason");
+    await expect(reasonField).toBeVisible();
+    await reasonField.fill("Automation Test");
+
+    const applyBtn = addCreditNotemodal.getByRole("button", {name: "Reverse"});
+    await expect(applyBtn).toBeVisible();
+    await applyBtn.click();
+
+    await this.page.waitForTimeout(3000);
+
+    await this.assertConfirmedButtonStatus("Draft");
+
+    await this.page.waitForTimeout(1000);
+
+    // Locate and click the "CONFIRM" button inside
+    const creditNoteConfirmButton = this.page.locator('button[name="action_post"]');
+    await creditNoteConfirmButton.waitFor({ state: "visible" });
+    await creditNoteConfirmButton.click();
+
+    await this.page.waitForTimeout(2000);
+
+    const confirmModal = this.page.locator('.modal-content:has-text("Are you sure that you want to create stock moves with this Invoice.")');
+    await expect(confirmModal).toBeVisible();
+
+    // Click the OK button inside the modal
+    await confirmModal.getByRole('button', { name: 'Ok' }).click();
+
+    await this.page.waitForTimeout(2000);
+
+    this.assertConfirmedButtonStatus("Posted");
+
+    await this.page.waitForTimeout(2000);
+
+    const registerPaymant = this.page.locator("#account_invoice_payment_btn");
+    await expect(registerPaymant).toBeVisible();
+    await registerPaymant.click();
+    
+    await this.page.waitForTimeout(2000);
+
+    // expect a popup with "Register Payment" heading
+    const registerPaymentmodal = this.page.locator('.modal-content:has-text("Register Payment")');
+    await expect(registerPaymentmodal).toBeVisible();
+
+    // Assert modal header is correct (optional, for clarity)
+    await expect(registerPaymentmodal.locator('.modal-title')).toHaveText(/Register Payment/i);
+
+    const createPaymentBtn = registerPaymentmodal.getByRole("button", {name: "Create Payment"});
+    await expect(createPaymentBtn).toBeVisible();
+    await createPaymentBtn.click();
+
+    await this.page.waitForTimeout(2000);
+
+    const ribbon = this.page.locator('.ribbon.ribbon-top-right span.bg-success');
+    await expect(ribbon).toHaveText('Paid');
   }
 }
