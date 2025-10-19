@@ -348,13 +348,13 @@ test("POS-005 (Price cut)", async () => {
 
 test("POS-006 (employee should be allowed to have discount permission)", async () => {
   const productPrice = 100.0;
-  // // Go to the inventory module and create product (to guarantee that our product is exist)
-  // await inventoryPage.archiveProduct(process.env.PRODUCT_NAME as string);
-  // await inventoryPage.createNewProduct(
-  //   process.env.PRODUCT_NAME as string,
-  //   productPrice,
-  //   20
-  // );
+  // Go to the inventory module and create product (to guarantee that our product is exist)
+  await inventoryPage.archiveProduct(process.env.PRODUCT_NAME as string);
+  await inventoryPage.createNewProduct(
+    process.env.PRODUCT_NAME as string,
+    productPrice,
+    20
+  );
 
   // Open POS
   await posPage.navigateToPOS();
@@ -383,10 +383,10 @@ test("POS-006 (employee should be allowed to have discount permission)", async (
   await posPage.closeSession();
   await posPage.waitForPOSPage();
 
-  // // Archive the product
-  // await inventoryPage.navigateToInventory();
-  // await inventoryPage.navigateToProductsInventory();
-  // await inventoryPage.archiveProduct(process.env.PRODUCT_NAME as string);
+  // Archive the product
+  await inventoryPage.navigateToInventory();
+  await inventoryPage.navigateToProductsInventory();
+  await inventoryPage.archiveProduct(process.env.PRODUCT_NAME as string);
 });
 
 test("POS-007", async () => {
