@@ -549,7 +549,8 @@ export class InventoryPage {
       .first();
     await locationInput.waitFor({ state: "visible" });
     await locationInput.click();
-    await this.page.keyboard.press("ArrowDown"); // select first option
+    await this.page.waitForTimeout(1000);
+    // await this.page.keyboard.press("ArrowDown"); // select first option
     await this.page.keyboard.press("Enter");
 
     // Fill Expiration Date

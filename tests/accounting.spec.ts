@@ -46,7 +46,7 @@ test.afterAll(async () => {
   await context.close();
 });
 
-test("ACC-001", async () => {
+test("ACC-001: - Create customer invoice \n - Register payment \n - Customer refund", async () => {
     // Create new product
     const initialQuantity = 20;
     await inventoryPage.archiveProduct(process.env.PRODUCT_NAME as string);
@@ -67,7 +67,7 @@ test("ACC-001", async () => {
     await inventoryPage.archiveProduct(process.env.PRODUCT_NAME as string);
 });
 
-test("ACC-002", async () => {
+test("ACC-002: - Create vendor bill \n - Vendor refund", async () => {
     // Create new product
     const initialQuantity = 20;
     await inventoryPage.archiveProduct(process.env.PRODUCT_NAME as string);

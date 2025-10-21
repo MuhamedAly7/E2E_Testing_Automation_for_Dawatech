@@ -42,17 +42,17 @@ test.afterAll(async () => {
   await context.close();
 });
 
-test("SAL-001", async () => {
+test("SAL-001: - Create quotation \n - Convert quotation to Sales Order \n - Deliver products \n - Generate invoice from SO", async () => {
     const initialQuantity = 20;
-    // await inventoryPage.archiveProduct(process.env.PRODUCT_NAME as string);
-    // await inventoryPage.createNewProduct(process.env.PRODUCT_NAME as string, 100.0, initialQuantity);
+    await inventoryPage.archiveProduct(process.env.PRODUCT_NAME as string);
+    await inventoryPage.createNewProduct(process.env.PRODUCT_NAME as string, 100.0, initialQuantity);
 
     await salesPage.navigateToSalesModule();
     await salesPage.createNewQuotationAndGenerateInvoice(process.env.USERNAME_CUSTOMERNAME_CASHIERNAME as string, process.env.PRODUCT_NAME as string, 1.0);
 
-    // await inventoryPage.archiveProduct(process.env.PRODUCT_NAME as string);
+    await inventoryPage.archiveProduct(process.env.PRODUCT_NAME as string);
 });
-test("SAL-002", async () => {
+test("SAL-002: - Credit note from vendor bill \n - Create return from delivery \n - Cancel delivery or issue reverse transfer \n - Create credit note from invoice \n - Partial refund", async () => {
   const initialQuantity = 20;
   await inventoryPage.archiveProduct(process.env.PRODUCT_NAME as string);
   await inventoryPage.createNewProduct(process.env.PRODUCT_NAME as string, 100.0, initialQuantity);

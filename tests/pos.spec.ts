@@ -39,7 +39,7 @@ test.afterAll(async () => {
   await context.close();
 });
 
-test("POS-0001 (POS Preferred to be closed)", async () => {
+test("POS-0001: - Load POS interface for authorized user \n - Add product to order \n - Session open/close \n - Return product from recent order \n - Refund issued via same payment method \n - Partial return/refund \n - Attempt to return product not from order \n - POS return reflected in backend order/invoice \n - POS left Panel Buttons hidden if config enabled \n - Header buttons and custom fields appear correctly \n - Closing session logs data by branch", async () => {
   // Go to the inventory module and create product (to guarantee that our product is exist)
   await inventoryPage.archiveProduct(process.env.PRODUCT_NAME as string);
   await inventoryPage.createNewProduct(
@@ -102,7 +102,7 @@ test("POS-0001 (POS Preferred to be closed)", async () => {
   await inventoryPage.archiveProduct(process.env.PRODUCT_NAME as string);
 });
 
-test("POS-002", async () => {
+test("POS-002: - Increment/Decrement buttons function based on config \n - Draft order blocks session closure if enabled", async () => {
   // Go to the inventory module and create product (to guarantee that our product is exist)
   await inventoryPage.archiveProduct(process.env.PRODUCT_NAME as string);
   await inventoryPage.createNewProduct(
@@ -150,7 +150,7 @@ test("POS-002", async () => {
   await inventoryPage.archiveProduct(process.env.PRODUCT_NAME as string);
 });
 
-test("POS-003", async () => {
+test("POS-003: - Trigger popup for instructions from order line \n - Instructions linked to order backend", async () => {
   // Go to the inventory module and create product (to guarantee that our product is exist)
   await inventoryPage.archiveProduct(process.env.PRODUCT_NAME as string);
   await inventoryPage.createNewProduct(
@@ -176,7 +176,7 @@ test("POS-003", async () => {
   await inventoryPage.archiveProduct(process.env.PRODUCT_NAME as string);
 });
 
-test("POS-004", async () => {
+test("POS-004: - Earn points based on config \n - Redeem points in order \n - Points accurately updated in backend", async () => {
   // Go to the inventory module and create product (to guarantee that our product is exist)
   await inventoryPage.archiveProduct(process.env.PRODUCT_NAME as string);
   await inventoryPage.createNewProduct(
@@ -244,7 +244,7 @@ test("POS-004", async () => {
   await inventoryPage.archiveProduct(process.env.PRODUCT_NAME as string);
 });
 
-test("POS-005 (Buy one get one)", async () => {
+test("POS-005: - Buy one get one program", async () => {
   // Go to the inventory module and create product (to guarantee that our product is exist)
   await inventoryPage.archiveProduct(process.env.PRODUCT_NAME as string);
   await inventoryPage.createNewProduct(
@@ -298,7 +298,7 @@ test("POS-005 (Buy one get one)", async () => {
   await inventoryPage.archiveProduct(process.env.PRODUCT_NAME as string);
 });
 
-test("POS-005 (Price cut)", async () => {
+test("POS-005: - Price cut program", async () => {
   // Go to the inventory module and create product (to guarantee that our product is exist)
   await inventoryPage.archiveProduct(process.env.PRODUCT_NAME as string);
   await inventoryPage.createNewProduct(
@@ -346,7 +346,7 @@ test("POS-005 (Price cut)", async () => {
   await inventoryPage.archiveProduct(process.env.PRODUCT_NAME as string);
 });
 
-test("POS-006 (employee should be allowed to have discount permission)", async () => {
+test("POS-006: - Apply discount and taxes \n - Payment via multiple methods (employee should be allowed to have discount permission)", async () => {
   const productPrice = 100.0;
   // Go to the inventory module and create product (to guarantee that our product is exist)
   await inventoryPage.archiveProduct(process.env.PRODUCT_NAME as string);
@@ -355,6 +355,11 @@ test("POS-006 (employee should be allowed to have discount permission)", async (
     productPrice,
     20
   );
+
+  // Archive all program to not make any conflict with pricing
+  await posPage.navigateToPOS();
+  await posPage.navigateToDiscountAndLoyalty();
+  await posPage.ArchiveAllPrograms();
 
   // Open POS
   await posPage.navigateToPOS();
@@ -389,7 +394,7 @@ test("POS-006 (employee should be allowed to have discount permission)", async (
   await inventoryPage.archiveProduct(process.env.PRODUCT_NAME as string);
 });
 
-test("POS-007", async () => {
+test("POS-007: - Valid QR scans load products \n - Invalid QR codes handled without error", async () => {
   // Go to the inventory module and create product (to guarantee that our product is exist)
   await inventoryPage.archiveProduct(process.env.PRODUCT_NAME as string);
   const barCode = Utils.generateBarcode();
@@ -400,6 +405,11 @@ test("POS-007", async () => {
     20,
     barCode
   );
+
+  // Archive all program to not make any conflict with pricing
+  await posPage.navigateToPOS();
+  await posPage.navigateToDiscountAndLoyalty();
+  await posPage.ArchiveAllPrograms();
 
   // Open POS
   await posPage.navigateToPOS();

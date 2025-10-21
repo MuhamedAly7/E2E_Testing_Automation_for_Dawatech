@@ -39,7 +39,7 @@ test.afterAll(async () => {
   await context.close();
 });
 
-test("INV-001", async () => {
+test("INV-001: - Transfer with same source/dest \n - Receive products into stock \n - View stock quantity in product", async () => {
   // Go to the inventory module and create product (to guarantee that our product is exist)
   await inventoryPage.archiveProduct(process.env.PRODUCT_NAME as string);
   await inventoryPage.createNewProduct(
@@ -69,7 +69,7 @@ test("INV-001", async () => {
   await inventoryPage.archiveProduct(process.env.PRODUCT_NAME as string);
 });
 
-test("INV-002", async () => {
+test("INV-002: - Inventory adjustment cycle", async () => {
   // Create new product
   const initialQuantity = 20;
   await inventoryPage.archiveProduct(process.env.PRODUCT_NAME as string);

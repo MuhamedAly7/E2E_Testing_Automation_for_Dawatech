@@ -88,6 +88,7 @@ export class PurchasePage {
 
   async confirmRFQ() {
     await this.page.locator("#draft_confirm").click();
+    await this.page.waitForTimeout(2000);
   }
 
   async verifyPurchaseOrderStage() {

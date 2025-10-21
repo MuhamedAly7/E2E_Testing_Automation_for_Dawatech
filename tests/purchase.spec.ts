@@ -40,7 +40,7 @@ test.afterAll(async () => {
   await context.close();
 });
 
-test("PUR-001", async () => {
+test("PUR-001: - Create RFQ with vendor \n - Confirm RFQ to Purchase Order \n - Receive products \n - Create vendor bill from PO \n - Cancel confirmed PO \n- Reverse receipt after confirmation \n - Modify received quantity", async () => {
   await purchasePage.navigateToPurchase();
   await purchasePage.verifyPageTitle();
   await purchasePage.createNewRFQ();

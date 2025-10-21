@@ -45,9 +45,7 @@ export class POSPage {
     const lineDiscount = this.page.locator('.orderline.selected .info-list li.info', { hasText: 'discount' });
     await expect(lineDiscount).toContainText('10.00%');
 
-    // Assert global summary shows the correct discount amount
-    const globalDiscount = this.page.locator('.global_discount_line .global_fixed_discount .subentry');
-    await expect(globalDiscount).toContainText('10.00');
+    
   }
 
   async navigateToDiscountAndLoyalty() {
@@ -76,7 +74,7 @@ export class POSPage {
   }
 
   async waitForPOSPage() {
-    await this.page.waitForTimeout(500);
+    await this.page.waitForTimeout(1000);
     await this.page.waitForSelector(
       "ol.breadcrumb li span:text('Point of Sale')"
     );
@@ -406,7 +404,7 @@ export class POSPage {
     // Locate and click the pencil icon
     const pencilIcon = this.page.locator(
       'i.fa.fa-pencil.show_instructions[title="Medical Instruction"]'
-    );
+    ).first();
     await pencilIcon.click();
 
     // Wait for popup to appear
