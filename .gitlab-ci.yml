@@ -19,7 +19,7 @@ pos_tests:
   stage: pos
   script:
     - echo "Running POS tests..."
-    - npx playwright test tests/pos.spec.ts --output=results/pos --reporter=html --reporter-option outputFolder=playwright-report/pos
+    - npx playwright test tests/pos.spec.ts --output=results/pos --reporter=html --reporter-options outputFolder=playwright-report/pos
   artifacts:
     paths:
       - playwright-report/pos
@@ -29,7 +29,7 @@ purchase_tests:
   stage: purchase
   script:
     - echo "Running Purchase tests..."
-    - npx playwright test tests/purchase.spec.ts --output=results/purchase --reporter=html --reporter-option outputFolder=playwright-report/purchase
+    - npx playwright test tests/purchase.spec.ts --output=results/purchase --reporter=html --reporter-options outputFolder=playwright-report/purchase
   artifacts:
     paths:
       - playwright-report/purchase
@@ -39,7 +39,7 @@ inventory_tests:
   stage: inventory
   script:
     - echo "Running Inventory tests..."
-    - npx playwright test tests/inventory.spec.ts --output=results/inventory --reporter=html --reporter-option outputFolder=playwright-report/inventory
+    - npx playwright test tests/inventory.spec.ts --output=results/inventory --reporter=html --reporter-options outputFolder=playwright-report/inventory
   artifacts:
     paths:
       - playwright-report/inventory
@@ -49,7 +49,7 @@ sales_tests:
   stage: sales
   script:
     - echo "Running Sales tests..."
-    - npx playwright test tests/sales.spec.ts --output=results/sales --reporter=html --reporter-option outputFolder=playwright-report/sales
+    - npx playwright test tests/sales.spec.ts --output=results/sales --reporter=html --reporter-options outputFolder=playwright-report/sales
   artifacts:
     paths:
       - playwright-report/sales
@@ -59,7 +59,7 @@ accounting_tests:
   stage: accounting
   script:
     - echo "Running Accounting tests..."
-    - npx playwright test tests/accounting.spec.ts --output=results/accounting --reporter=html --reporter-option outputFolder=playwright-report/accounting
+    - npx playwright test tests/accounting.spec.ts --output=results/accounting --reporter=html --reporter-options outputFolder=playwright-report/accounting
   artifacts:
     paths:
       - playwright-report/accounting
