@@ -161,13 +161,15 @@ export class InventoryPage {
     const dropdownProductLink = this.page.locator("a.dropdown-item", {
       hasText: "Products",
     });
-    await expect(dropdownProductLink).toBeVisible();
+    // await expect(dropdownProductLink).toBeVisible();
+    await dropdownProductLink.waitFor({ state: "visible" });
     await dropdownProductLink.click();
 
     // Verify that the Products page is loaded
     const breadcrumb = this.page.locator(
       "div.o_cp_top_left >> span.text-truncate"
     );
+    await breadcrumb.waitFor({ state: "visible" });
     await expect(breadcrumb).toHaveText("Products");
   }
 

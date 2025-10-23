@@ -267,7 +267,8 @@ export class POSPage {
     const newOrderBtn = this.page.locator(".button.next.validation.highlight", {
       hasText: "New Order",
     });
-    await expect(newOrderBtn).toBeVisible();
+    // await expect(newOrderBtn).toBeVisible({});
+    await newOrderBtn.waitFor({ state: "visible" });
     await newOrderBtn.click();
   }
 

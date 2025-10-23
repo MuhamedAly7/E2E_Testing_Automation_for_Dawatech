@@ -17,12 +17,13 @@ let inventoryPage: InventoryPage;
 let salesPage: SalesPage;
 
 test.beforeEach(async ({ browser }) => {
-  context = await browser.newContext({
-    recordVideo: {
-      dir: "Videos/",
-      size: { width: 800, height: 600 },
-    },
-  });
+  // context = await browser.newContext({
+  //   recordVideo: {
+  //     dir: "Videos/",
+  //     size: { width: 800, height: 600 },
+  //   },
+  // });
+  context = await browser.newContext();
   page = await context.newPage();
   loginPage = new LoginPage(page);
   posPage = new POSPage(page, context);
