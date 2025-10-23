@@ -6,76 +6,65 @@ stages:
   - accounting
   - merge_reports
 
-# Use the official Playwright image
 default:
-  image: mcr.microsoft.com/playwright:v1.48.0-jammy
+  image: mcr.microsoft.com/playwright:v1.55.1-jammy
   before_script:
     - npm ci
   artifacts:
     when: always
     expire_in: 1 week
 
-# === POS Stage ===
+# === 1️⃣ POS ===
 pos_tests:
   stage: pos
   script:
     - echo "Running POS tests..."
-    - npx playwright test tests/pos.spec.ts --reporter=html --output=playwright-report/pos
-    - cp -r playwright-report/pos merged-reports/pos || true
+    - npx playwright test tests/pos.spec.ts --output=results/pos --reporter=html --reporter-option outputFolder=playwright-report/pos
   artifacts:
     paths:
       - playwright-report/pos
-      - merged-reports/pos
 
-# === Purchase Stage ===
+# === 2️⃣ Purchase ===
 purchase_tests:
   stage: purchase
   script:
     - echo "Running Purchase tests..."
-    - npx playwright test tests/purchase.spec.ts --reporter=html --output=playwright-report/purchase
-    - cp -r playwright-report/purchase merged-reports/purchase || true
+    - npx playwright test tests/purchase.spec.ts --output=results/purchase --reporter=html --reporter-option outputFolder=playwright-report/purchase
   artifacts:
     paths:
       - playwright-report/purchase
-      - merged-reports/purchase
 
-# === Inventory Stage ===
+# === 3️⃣ Inventory ===
 inventory_tests:
   stage: inventory
   script:
     - echo "Running Inventory tests..."
-    - npx playwright test tests/inventory.spec.ts --reporter=html --output=playwright-report/inventory
-    - cp -r playwright-report/inventory merged-reports/inventory || true
+    - npx playwright test tests/inventory.spec.ts --output=results/inventory --reporter=html --reporter-option outputFolder=playwright-report/inventory
   artifacts:
     paths:
       - playwright-report/inventory
-      - merged-reports/inventory
 
-# === Sales Stage ===
+# === 4️⃣ Sales ===
 sales_tests:
   stage: sales
   script:
     - echo "Running Sales tests..."
-    - npx playwright test tests/sales.spec.ts --reporter=html --output=playwright-report/sales
-    - cp -r playwright-report/sales merged-reports/sales || true
+    - npx playwright test tests/sales.spec.ts --output=results/sales --reporter=html --reporter-option outputFolder=playwright-report/sales
   artifacts:
     paths:
       - playwright-report/sales
-      - merged-reports/sales
 
-# === Accounting Stage ===
+# === 5️⃣ Accounting ===
 accounting_tests:
   stage: accounting
   script:
     - echo "Running Accounting tests..."
-    - npx playwright test tests/accounting.spec.ts --reporter=html --output=playwright-report/accounting
-    - cp -r playwright-report/accounting merged-reports/accounting || true
+    - npx playwright test tests/accounting.spec.ts --output=results/accounting --reporter=html --reporter-option outputFolder=playwright-report/accounting
   artifacts:
     paths:
       - playwright-report/accounting
-      - merged-reports/accounting
 
-# === Final Merge Stage ===
+# === 6️⃣ Merge Reports ===
 merge_reports:
   stage: merge_reports
   needs:
@@ -85,10 +74,9 @@ merge_reports:
     - sales_tests
     - accounting_tests
   script:
-    - echo "Merging all reports into one HTML dashboard..."
+    - echo "Merging reports..."
     - mkdir -p merged-reports
-    - echo "<html><head><title>Combined Playwright Reports</title></head><body>" > merged-reports/index.html
-    - echo "<h1>Combined Playwright Reports</h1><ul>" >> merged-reports/index.html
+    - echo "<html><head><title>Combined Playwright Reports</title></head><body><h1>All Reports</h1><ul>" > merged-reports/index.html
     - for dir in pos purchase inventory sales accounting; do
         echo "<li><a href=\"./$dir/index.html\">${dir^} Report</a></li>" >> merged-reports/index.html;
       done
