@@ -19,7 +19,7 @@ pos_tests:
   stage: pos
   script:
     - echo "Running POS tests..."
-    - npx playwright test tests/pos.spec.ts --reporter=html,playwright-report/pos --output=results/pos
+    - REPORT_DIR=playwright-report/pos npx playwright test tests/pos.spec.ts --output=results/pos
   artifacts:
     paths:
       - playwright-report/pos
@@ -29,7 +29,7 @@ purchase_tests:
   stage: purchase
   script:
     - echo "Running Purchase tests..."
-    - npx playwright test tests/purchase.spec.ts --reporter=html,playwright-report/purchase --output=results/purchase
+    - REPORT_DIR=playwright-report/purchase npx playwright test tests/purchase.spec.ts --output=results/purchase
   artifacts:
     paths:
       - playwright-report/purchase
@@ -39,7 +39,7 @@ inventory_tests:
   stage: inventory
   script:
     - echo "Running Inventory tests..."
-    - npx playwright test tests/inventory.spec.ts --reporter=html,playwright-report/inventory --output=results/inventory
+    - REPORT_DIR=playwright-report/inventory npx playwright test tests/inventory.spec.ts --output=results/inventory
   artifacts:
     paths:
       - playwright-report/inventory
@@ -49,7 +49,7 @@ sales_tests:
   stage: sales
   script:
     - echo "Running Sales tests..."
-    - npx playwright test tests/sales.spec.ts --reporter=html,playwright-report/sales --output=results/sales
+    - REPORT_DIR=playwright-report/sales npx playwright test tests/sales.spec.ts --output=results/sales
   artifacts:
     paths:
       - playwright-report/sales
@@ -59,7 +59,7 @@ accounting_tests:
   stage: accounting
   script:
     - echo "Running Accounting tests..."
-    - npx playwright test tests/accounting.spec.ts --reporter=html,playwright-report/accounting --output=results/accounting
+    - REPORT_DIR=playwright-report/accounting npx playwright test tests/accounting.spec.ts --output=results/accounting
   artifacts:
     paths:
       - playwright-report/accounting
@@ -76,7 +76,7 @@ merge_reports:
   script:
     - echo "Merging reports..."
     - mkdir -p merged-reports
-    - echo "<html><head><title>Combined Playwright Reports</title></head><body><h1>All Reports</h1><ul>" > merged-reports/index.html
+    - echo "<html><head><title>Playwright Reports</title></head><body><h1>All Reports</h1><ul>" > merged-reports/index.html
     - for dir in pos purchase inventory sales accounting; do
         echo "<li><a href=\"./$dir/index.html\">${dir^} Report</a></li>" >> merged-reports/index.html;
       done
