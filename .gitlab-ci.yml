@@ -68,20 +68,37 @@ accounting_tests:
 merge_reports:
   stage: merge_reports
   needs:
-    - pos_tests
-    - purchase_tests
-    - inventory_tests
-    - sales_tests
-    - accounting_tests
+    - job: pos_tests
+      artifacts: true
+    - job: purchase_tests
+      artifacts: true
+    - job: inventory_tests
+      artifacts: true
+    - job: sales_tests
+      artifacts: true
+    - job: accounting_tests
+      artifacts: true
   script:
-    - echo "Merging reports..."
     - mkdir -p merged-reports
-    - echo "<html><head><title>Playwright Reports</title></head><body><h1>All Reports</h1><ul>" > merged-reports/index.html
+    # Copy reports from all stages (they are downloaded automatically via "needs: artifacts: true")
+    - cp -r playwright-report/pos merged-reports/ || true
+    - cp -r playwright-report/purchase merged-reports/ || true
+    - cp -r playwright-report/inventory merged-reports/ || true
+    - cp -r playwright-report/sales merged-reports/ || true
+    - cp -r playwright-report/accounting merged-reports/ || true
+
+    # Generate the HTML index
+    - echo "<html><head><title>All Playwright Reports</title></head><body><h1>Playwright Smoke Test Reports</h1><ul>" > merged-reports/index.html
     - for dir in pos purchase inventory sales accounting; do
-        echo "<li><a href=\"./$dir/index.html\">${dir^} Report</a></li>" >> merged-reports/index.html;
+        if [ -d merged-reports/$dir ]; then
+          echo "<li><a href=\"./$dir/index.html\">${dir^} Report</a></li>" >> merged-reports/index.html;
+        else
+          echo "<li>${dir^} Report (missing)</li>" >> merged-reports/index.html;
+        fi;
       done
     - echo "</ul></body></html>" >> merged-reports/index.html
   artifacts:
     paths:
       - merged-reports
     expire_in: 1 week
+
