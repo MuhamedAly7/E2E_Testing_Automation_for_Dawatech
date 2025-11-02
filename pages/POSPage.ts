@@ -293,7 +293,7 @@ export class POSPage {
 
   async dismissErrorPopup() {
     await this.page.locator(".popup.popup-error .button.cancel").click();
-    await this.page.waitForTimeout(1000);
+    await this.page.waitForTimeout(2000);
   }
 
   async initiateRefundPayment() {
@@ -363,6 +363,7 @@ export class POSPage {
 
   async confirmAction() {
     await this.page.locator(".popup.popup-confirm .button.confirm").click();
+    await this.page.waitForTimeout(2000);
   }
 
   async assertOnInstructionsPage(instruction: string) {
