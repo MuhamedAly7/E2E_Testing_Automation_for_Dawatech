@@ -11,6 +11,7 @@ export class AccountingPage {
     const buttonStatus = this.page.locator('.o_statusbar_status .o_arrow_button_current', {
       hasText: buttonContentText
     });
+    await this.page.waitForTimeout(2000);
     await buttonStatus.waitFor({ state: 'visible' });
     await expect(buttonStatus).toHaveCSS("background-color", "rgb(36, 55, 66)");
   }
